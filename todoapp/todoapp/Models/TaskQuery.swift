@@ -21,6 +21,13 @@ struct CompletedDateGroup: Identifiable, Equatable {
     }
 }
 
+/// 期限の表示用ラベル
+struct DueLabel: Equatable {
+    let text: String
+    /// 未完了で期限を過ぎている（赤で表示する）
+    let isOverdue: Bool
+}
+
 struct TaskQuery {
     var calendar: Calendar = .current
     var now: Date = Date()
@@ -53,6 +60,25 @@ struct TaskQuery {
         tasks
             .filter { isIncompleteVisible($0, in: filter) }
             .sorted { ($0.dueDate ?? .distantFuture) < ($1.dueDate ?? .distantFuture) }
+    }
+
+    /// このタブの一覧に出すタスク（未完了＋このタブの範囲で完了したもの）。
+    /// 完了しても位置が変わらないよう、完了状態ではなく期限→作成日の順で並べる。「履歴」は対象外。
+    func listedTasks(from tasks: [TodoTask], in filter: TaskFilter) -> [TodoTask] {
+        guard filter != .history else { return [] }
+        return tasks
+            .filter { task in
+                if task.isCompleted {
+                    guard let completedDate = task.completedDate else { return false }
+                    return isCompletedVisible(completedDate: completedDate, in: filter)
+                }
+                return isIncompleteVisible(task, in: filter)
+            }
+            .sorted { lhs, rhs in
+                let l = lhs.dueDate ?? .distantFuture
+                let r = rhs.dueDate ?? .distantFuture
+                return l != r ? l < r : lhs.createdDate < rhs.createdDate
+            }
     }
 
     /// タブに表示する未完了の件数。「履歴」は件数を出さないので nil
@@ -108,6 +134,50 @@ struct TaskQuery {
                 )
             }
             .sorted { $0.id < $1.id }
+    }
+
+    // MARK: 進み具合
+
+    /// このタブの進み具合（完了 / 完了＋未完了）。「履歴」は未完了がないので nil
+    func progress(in tasks: [TodoTask], for filter: TaskFilter) -> (done: Int, total: Int)? {
+        guard filter != .history else { return nil }
+        let remaining = tasks.filter { isIncompleteVisible($0, in: filter) }.count
+        let done = tasks.filter { task in
+            guard task.isCompleted, let completedDate = task.completedDate else { return false }
+            return isCompletedVisible(completedDate: completedDate, in: filter)
+        }.count
+        return (done, done + remaining)
+    }
+
+    /// 「履歴」タブに出る完了済みタスクの数
+    func historyCount(in tasks: [TodoTask]) -> Int {
+        tasks.filter { task in
+            guard task.isCompleted, let completedDate = task.completedDate else { return false }
+            return isCompletedVisible(completedDate: completedDate, in: .history)
+        }.count
+    }
+
+    // MARK: 期限の表示
+
+    /// 期限の表示用ラベル（今日・明日・n日遅れ・11/20(金) など）
+    func dueLabel(for dueDate: Date, isCompleted: Bool) -> DueLabel {
+        let startDue = calendar.startOfDay(for: dueDate)
+        let startNow = calendar.startOfDay(for: now)
+        let diff = calendar.dateComponents([.day], from: startNow, to: startDue).day ?? 0
+
+        switch diff {
+        case 0: return DueLabel(text: "今日", isOverdue: false)
+        case 1: return DueLabel(text: "明日", isOverdue: false)
+        case ..<0 where !isCompleted: return DueLabel(text: "\(-diff)日遅れ", isOverdue: true)
+        default:
+            let sameYear = calendar.isDate(dueDate, equalTo: now, toGranularity: .year)
+            let formatter = DateFormatter()
+            formatter.calendar = calendar
+            formatter.timeZone = calendar.timeZone
+            formatter.locale = Locale(identifier: "ja_JP")
+            formatter.dateFormat = sameYear ? "M/d(E)" : "yyyy/M/d"
+            return DueLabel(text: formatter.string(from: dueDate), isOverdue: false)
+        }
     }
 
     // MARK: -

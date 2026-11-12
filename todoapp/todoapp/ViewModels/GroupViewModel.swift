@@ -42,7 +42,14 @@ struct GroupViewModel {
         subgroup.name = name
     }
 
-    func deleteSubGroup(_ subgroup: SubGroup) {
+    /// サブグループを削除する。keepingTasks が true なら中のタスクは「サブグループなし」に移して残す
+    func deleteSubGroup(_ subgroup: SubGroup, keepingTasks: Bool) {
+        if keepingTasks {
+            for task in subgroup.tasks {
+                task.subgroup = nil
+            }
+            subgroup.tasks = []
+        }
         modelContext.delete(subgroup)
     }
 

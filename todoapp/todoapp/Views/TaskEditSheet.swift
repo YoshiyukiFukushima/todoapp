@@ -19,12 +19,33 @@ struct TaskEditSheet: View {
     @State private var dueDate: Date = Date()
     @State private var repeatInterval: RepeatInterval = .none
     @State private var showDeleteConfirm = false
+    @State private var selectedSubgroupID: UUID?
+
+    /// このタスクのグループにあるサブグループ（並び順）
+    private var subgroups: [SubGroup] {
+        (task?.group ?? group)?.subgroups.sorted(by: { $0.order < $1.order }) ?? []
+    }
+
+    private var selectedSubgroup: SubGroup? {
+        subgroups.first { $0.id == selectedSubgroupID }
+    }
 
     var body: some View {
         NavigationStack {
             Form {
                 DSFormSection("タスク名") {
                     TextField("タスク名", text: $title)
+                }
+
+                if !subgroups.isEmpty {
+                    DSFormSection("サブグループ") {
+                        Picker("サブグループ", selection: $selectedSubgroupID) {
+                            Text("なし").tag(UUID?.none)
+                            ForEach(subgroups) { subgroup in
+                                Text(subgroup.name).tag(Optional(subgroup.id))
+                            }
+                        }
+                    }
                 }
 
                 DSFormSection("メモ") {
@@ -82,6 +103,7 @@ struct TaskEditSheet: View {
     }
 
     private func loadInitialValues() {
+        selectedSubgroupID = (task?.subgroup ?? subgroup)?.id
         guard let task else { return }
         title = task.title
         memo = task.memo
@@ -101,7 +123,7 @@ struct TaskEditSheet: View {
                 memoDisplayMode: memoDisplayMode,
                 dueDate: finalDueDate,
                 repeatInterval: repeatInterval,
-                subgroup: task.subgroup
+                subgroup: selectedSubgroup
             )
         } else {
             taskViewModel.addTask(
@@ -111,7 +133,7 @@ struct TaskEditSheet: View {
                 dueDate: finalDueDate,
                 repeatInterval: repeatInterval,
                 group: group,
-                subgroup: subgroup
+                subgroup: selectedSubgroup
             )
         }
         dismiss()

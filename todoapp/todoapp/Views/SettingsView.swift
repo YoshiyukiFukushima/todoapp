@@ -35,8 +35,6 @@ struct SettingsView: View {
 
                 DSFormSection("アニメーション") {
                     Toggle("完了アニメーション", isOn: $themeManager.animationsEnabled)
-                    Toggle("完了時のエモジエフェクト", isOn: $themeManager.emojiEffectEnabled)
-                        .disabled(!themeManager.animationsEnabled)
                     Toggle("完了後にフェードアウト", isOn: $themeManager.fadeOutOnComplete)
                 }
 

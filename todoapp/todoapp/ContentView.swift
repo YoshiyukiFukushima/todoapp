@@ -2,12 +2,15 @@
 //  ContentView.swift
 //  todoapp
 //
+//  メイン画面：左のグループサイドバー＋上部（グループ名・進み具合・タブ）＋タスク一覧＋＋ボタン。
+//
 
 import SwiftUI
 import SwiftData
 
 struct ContentView: View {
     @Environment(\.modelContext) private var modelContext
+    @Environment(\.accessibilityReduceMotion) private var reduceMotion
     @EnvironmentObject private var themeManager: ThemeManager
 
     @Query(sort: \TodoGroup.order) private var groups: [TodoGroup]
@@ -15,10 +18,14 @@ struct ContentView: View {
 
     @State private var selectedGroupID: UUID?
     @State private var selectedFilter: TaskFilter = .day
-    @State private var showGroupManagement = false
+    @State private var isSidebarOpen = false
     @State private var showAddTask = false
     @State private var showSettings = false
     @State private var selectedTask: TodoTask?
+    @State private var editingGroup: TodoGroup?
+    @State private var showAddGroup = false
+    @State private var groupPendingDelete: TodoGroup?
+    @State private var showDeleteGroupConfirm = false
 
     private var taskViewModel: TaskViewModel { TaskViewModel(modelContext: modelContext) }
     private var groupViewModel: GroupViewModel { GroupViewModel(modelContext: modelContext) }
@@ -36,43 +43,47 @@ struct ContentView: View {
 
     var body: some View {
         ZStack(alignment: .leading) {
-            NavigationStack {
-                HStack(spacing: 0) {
-                    GroupListView(
-                        groups: groups,
-                        selectedGroupID: Binding(
-                            get: { selectedGroup?.id },
-                            set: { selectedGroupID = $0 }
-                        ),
-                        onMenuTap: { withAnimation(DS.Motion.standard) { showGroupManagement = true } }
-                    )
-                    .frame(width: DS.Size.sidebarCollapsed)
-
-                    Divider().overlay(DS.Colors.separator)
-
-                    taskArea
-                }
-                .background(DS.Colors.background)
-                .navigationBarTitleDisplayMode(.inline)
-                .toolbar {
-                    ToolbarItem(placement: .topBarTrailing) {
-                        Button {
-                            showSettings = true
-                        } label: {
-                            Image(systemName: "gearshape")
-                        }
-                    }
-                }
-            }
-
-            if showGroupManagement {
-                GroupManagementView(
+            HStack(spacing: 0) {
+                GroupRail(
                     groups: groups,
-                    groupViewModel: groupViewModel,
-                    isPresented: $showGroupManagement
+                    selectedGroupID: selectedGroup?.id,
+                    onToggle: { setSidebar(open: true) },
+                    onSelect: select
                 )
+                .frame(width: DS.Size.sidebarCollapsed)
+
+                mainColumn
+            }
+            .background(DS.Colors.background.ignoresSafeArea())
+
+            if isSidebarOpen {
+                DS.Colors.scrim
+                    .ignoresSafeArea()
+                    .onTapGesture { setSidebar(open: false) }
+                    .accessibilityLabel("グループ一覧を閉じる")
+                    .accessibilityAddTraits(.isButton)
+                    .transition(.opacity)
+
+                GroupSidebarPanel(
+                    groups: groups,
+                    selectedGroupID: selectedGroup?.id,
+                    onClose: { setSidebar(open: false) },
+                    onSelect: select,
+                    onAdd: { showAddGroup = true },
+                    onEdit: { editingGroup = $0 },
+                    onDelete: { group in
+                        groupPendingDelete = group
+                        showDeleteGroupConfirm = true
+                    },
+                    onMove: moveGroups
+                )
+                .frame(width: DS.Size.sidebarExpanded)
                 .transition(.move(edge: .leading))
-                .zIndex(1)
+            }
+        }
+        .confirmDelete(isPresented: $showDeleteGroupConfirm) {
+            if let group = groupPendingDelete {
+                groupViewModel.deleteGroup(group)
             }
         }
         .sheet(isPresented: $showAddTask) {
@@ -89,25 +100,76 @@ struct ContentView: View {
             SettingsView()
                 .dsRoot(accent: accent)
         }
+        .sheet(item: $editingGroup) { group in
+            GroupEditSheet(group: group, groupViewModel: groupViewModel)
+                .dsRoot(accent: accent)
+        }
+        .sheet(isPresented: $showAddGroup) {
+            GroupEditSheet(group: nil, groupViewModel: groupViewModel, nextOrder: groups.count)
+                .dsRoot(accent: accent)
+        }
         .dsRoot(accent: accent)
         .onAppear(perform: seedDefaultGroupIfNeeded)
+        // 「先頭のグループ」を暗黙に選ぶと並べ替えで選択が変わるため、選択を明示的に持つ
+        .onChange(of: groups.map(\.id), initial: true) { _, ids in
+            if selectedGroupID == nil || !ids.contains(selectedGroupID!) {
+                selectedGroupID = ids.first
+            }
+        }
     }
 
-    private var taskArea: some View {
-        VStack(spacing: 0) {
-            TabBarView(selectedFilter: $selectedFilter, tasks: tasksInSelectedGroup)
+    // MARK: - 右側（上部＋一覧）
 
-            TaskListView(
-                group: selectedGroup,
-                filter: selectedFilter,
-                taskViewModel: taskViewModel,
-                groupViewModel: groupViewModel,
-                onSelectTask: { selectedTask = $0 }
-            )
+    @ViewBuilder
+    private var mainColumn: some View {
+        if let group = selectedGroup {
+            VStack(spacing: 0) {
+                VStack(spacing: DS.Spacing.m) {
+                    MainHeaderView(
+                        groupName: group.name,
+                        filter: selectedFilter,
+                        tasks: tasksInSelectedGroup,
+                        onSettings: { showSettings = true }
+                    )
+                    FilterTabs(selection: $selectedFilter, tasks: tasksInSelectedGroup)
+                }
+                .padding(.horizontal, DS.Spacing.screenMargin)
+                .padding(.top, DS.Spacing.s)
+                .padding(.bottom, DS.Spacing.s)
+
+                TaskListView(
+                    group: group,
+                    filter: selectedFilter,
+                    taskViewModel: taskViewModel,
+                    groupViewModel: groupViewModel,
+                    onSelectTask: { selectedTask = $0 }
+                )
+            }
+            .overlay(alignment: themeManager.addButtonPosition.alignment) {
+                AddTaskButton(isEnabled: true) { showAddTask = true }
+            }
+        } else {
+            ContentUnavailableView("グループがありません", systemImage: "folder",
+                                   description: Text("左上のボタンからグループを追加できます。"))
+                .frame(maxWidth: .infinity, maxHeight: .infinity)
         }
-        .overlay(alignment: themeManager.addButtonPosition.alignment) {
-            AddTaskButton(isEnabled: selectedGroup != nil) { showAddTask = true }
-        }
+    }
+
+    // MARK: - 操作
+
+    private func setSidebar(open: Bool) {
+        withAnimation(DS.Motion.respecting(reduceMotion)) { isSidebarOpen = open }
+    }
+
+    private func select(_ group: TodoGroup) {
+        selectedGroupID = group.id
+        if isSidebarOpen { setSidebar(open: false) }
+    }
+
+    private func moveGroups(from source: IndexSet, to destination: Int) {
+        var reordered = Array(groups)
+        reordered.move(fromOffsets: source, toOffset: destination)
+        groupViewModel.reorderGroups(reordered)
     }
 
     private func seedDefaultGroupIfNeeded() {

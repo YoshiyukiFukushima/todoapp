@@ -24,7 +24,6 @@ final class ThemeManager: ObservableObject {
     private enum Keys {
         static let theme = "selectedTheme"
         static let animationsEnabled = "animationsEnabled"
-        static let emojiEffectEnabled = "emojiEffectEnabled"
         static let fadeOutOnComplete = "fadeOutOnComplete"
         static let addButtonPosition = "addButtonPosition"
         static let isCompletedSectionExpanded = "isCompletedSectionExpanded"
@@ -37,10 +36,6 @@ final class ThemeManager: ObservableObject {
 
     @Published var animationsEnabled: Bool {
         didSet { UserDefaults.standard.set(animationsEnabled, forKey: Keys.animationsEnabled) }
-    }
-
-    @Published var emojiEffectEnabled: Bool {
-        didSet { UserDefaults.standard.set(emojiEffectEnabled, forKey: Keys.emojiEffectEnabled) }
     }
 
     @Published var fadeOutOnComplete: Bool {
@@ -65,7 +60,6 @@ final class ThemeManager: ObservableObject {
         let rawTheme = defaults.string(forKey: Keys.theme) ?? AppTheme.lavender.rawValue
         selectedTheme = AppTheme(rawValue: rawTheme) ?? .lavender
         animationsEnabled = defaults.object(forKey: Keys.animationsEnabled) as? Bool ?? true
-        emojiEffectEnabled = defaults.object(forKey: Keys.emojiEffectEnabled) as? Bool ?? true
         fadeOutOnComplete = defaults.object(forKey: Keys.fadeOutOnComplete) as? Bool ?? false
         let rawPosition = defaults.string(forKey: Keys.addButtonPosition) ?? AddButtonPosition.bottomTrailing.rawValue
         addButtonPosition = AddButtonPosition(rawValue: rawPosition) ?? .bottomTrailing

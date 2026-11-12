@@ -124,6 +124,8 @@ extension DS {
         static let surface = Color(light: 0xFFFFFF, dark: 0x241D17)
         /// へこんだ面（セグメントの溝、サイドバー、輪の未達部分）
         static let surfaceSunken = Color(light: 0xF6E7D8, dark: 0x2E251D)
+        /// セグメントで選ばれている部分（ダークでは溝より明るくする）
+        static let segmentSelected = Color(light: 0xFFFFFF, dark: 0x4A3D31)
         /// シート・浮いたパネル
         static let surfaceElevated = Color(light: 0xFFFFFF, dark: 0x2C241C)
 
@@ -141,6 +143,11 @@ extension DS {
         static let onDanger = Color.white
         /// 進み具合 100% の輪
         static let success = Color(light: 0x3FA34D, dark: 0x5CC46A)
+
+        /// サイドバーを開いたときに一覧へかける暗幕
+        static let scrim = Color(uiColor: UIColor { traits in
+            UIColor.black.withAlphaComponent(traits.userInterfaceStyle == .dark ? 0.5 : 0.25)
+        })
 
         /// 影の色（ダークでは黒を濃くする）
         static let shadow = Color(uiColor: UIColor { traits in
@@ -197,13 +204,19 @@ extension DS {
         static let completed: Double = 0.6
         /// 完了したタスクのメモ
         static let completedMemo: Double = 0.5
+        /// 「サブグループを追加」などの点線の枠
+        static let dashedBorder: Double = 0.6
     }
 
     enum Stroke {
         /// 行の枠線
         static let hairline: CGFloat = 0.5
-        /// 選択中の枠線・チェックの丸
+        /// 選択中の枠線
         static let regular: CGFloat = 2
+        /// チェックの丸の線
+        static let check: CGFloat = 2.5
+        /// 点線の間隔
+        static let dash: [CGFloat] = [5, 4]
     }
 
     enum Layout {
@@ -267,6 +280,8 @@ extension DS {
         /// 進み具合の輪
         static let ring: CGFloat = 44
         static let ringLineWidth: CGFloat = 5
+        /// タブ（セグメント）1 つ分の高さ。溝の余白と合わせて 44pt 以上になる
+        static let segmentHeight: CGFloat = 36
     }
 }
 
@@ -274,19 +289,34 @@ extension DS {
 
 extension DS {
     enum Elevation {
+        /// 影なし（完了したタスクなど）
+        case none
         /// 行・カード（ほぼ平ら）
         case card
         /// 浮いた＋ボタン・サイドバーを開いたとき
         case floating
 
-        var radius: CGFloat { self == .card ? 6 : 16 }
-        var y: CGFloat { self == .card ? 2 : 6 }
+        var radius: CGFloat {
+            switch self {
+            case .none: 0
+            case .card: 6
+            case .floating: 16
+            }
+        }
+
+        var y: CGFloat {
+            switch self {
+            case .none: 0
+            case .card: 2
+            case .floating: 6
+            }
+        }
     }
 }
 
 extension View {
     func dsShadow(_ elevation: DS.Elevation) -> some View {
-        shadow(color: DS.Colors.shadow, radius: elevation.radius, x: 0, y: elevation.y)
+        shadow(color: elevation == .none ? .clear : DS.Colors.shadow, radius: elevation.radius, x: 0, y: elevation.y)
     }
 }
 

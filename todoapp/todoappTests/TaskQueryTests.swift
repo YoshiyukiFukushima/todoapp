@@ -211,4 +211,103 @@ struct TaskQueryTests {
         let completedDate = try #require(original.completedDate)
         #expect(next.dueDate == Calendar.current.date(byAdding: .day, value: 7, to: completedDate))
     }
+
+    // MARK: 進み具合・期限の表示
+
+    @Test func progressCountsDoneAndRemainingInTab() throws {
+        let tasks = [
+            task("今日・未完了", due: day(11, 12)),
+            task("今日・完了", due: day(11, 12), completedAt: now),
+            task("昨日完了", due: day(11, 11), completedAt: daysAgo(1)),
+            task("明日", due: day(11, 13)),
+        ]
+        let today = try #require(query.progress(in: tasks, for: .day))
+        #expect(today.done == 1)
+        #expect(today.total == 2)
+        let week = try #require(query.progress(in: tasks, for: .week))
+        #expect(week.done == 2)
+        #expect(week.total == 4)
+        #expect(query.progress(in: tasks, for: .history) == nil)
+    }
+
+    @Test func dueLabels() {
+        #expect(query.dueLabel(for: day(11, 12), isCompleted: false) == DueLabel(text: "今日", isOverdue: false))
+        #expect(query.dueLabel(for: day(11, 13), isCompleted: false) == DueLabel(text: "明日", isOverdue: false))
+        #expect(query.dueLabel(for: day(11, 10), isCompleted: false) == DueLabel(text: "2日遅れ", isOverdue: true))
+        #expect(query.dueLabel(for: day(11, 20), isCompleted: false) == DueLabel(text: "11/20(金)", isOverdue: false))
+        // 完了済みは遅れ表示にしない
+        #expect(query.dueLabel(for: day(11, 10), isCompleted: true) == DueLabel(text: "11/10(火)", isOverdue: false))
+        let nextYear = calendar.date(from: DateComponents(year: 2027, month: 1, day: 5, hour: 9))!
+        #expect(query.dueLabel(for: nextYear, isCompleted: false).text == "2027/1/5")
+    }
+
+    // MARK: グループの見た目
+
+    @Test func legacyGroupIconsMapToSymbolsOrFirstLetter() {
+        #expect(GroupAppearance.glyph(icon: "🏠", name: "ホーム") == .symbol("house.fill"))
+        #expect(GroupAppearance.glyph(icon: "cart.fill", name: "買い物") == .symbol("cart.fill"))
+        #expect(GroupAppearance.glyph(icon: "🦄", name: "趣味") == .letter("趣"))
+    }
+
+    @Test func legacyGroupColorsMapToAccents() {
+        #expect(GroupAppearance.accent(colorHex: AppTheme.lavender.colorHex) == .grape)
+        #expect(GroupAppearance.accent(colorHex: AppTheme.mint.colorHex) == .teal)
+        #expect(GroupAppearance.accent(colorHex: "mikan") == .mikan)
+        #expect(GroupAppearance.accent(colorHex: "#1E6FD9") == .sky)
+        #expect(GroupAppearance.accent(colorHex: "#808080") == .cocoa)
+    }
+
+    // MARK: 完了してもその場に残る
+
+    @Test func completedTasksStayInPlaceWithinTab() {
+        let a = task("A", due: day(11, 12, hour: 8))
+        let b = task("B", due: day(11, 12, hour: 9))
+        let c = task("C", due: day(11, 12, hour: 10))
+        let tasks = [c, a, b]
+        #expect(titles(query.listedTasks(from: tasks, in: .day)) == ["A", "B", "C"])
+
+        b.isCompleted = true
+        b.completedDate = now
+        #expect(titles(query.listedTasks(from: tasks, in: .day)) == ["A", "B", "C"])
+    }
+
+    @Test func listedTasksRespectCompletedRangeAndExcludeHistory() {
+        let tasks = [
+            task("未完了", due: day(11, 12)),
+            task("今日完了", due: day(11, 12), completedAt: now),
+            task("昨日完了", due: day(11, 11), completedAt: daysAgo(1)),
+            task("10日前完了", completedAt: daysAgo(10)),
+        ]
+        #expect(Set(titles(query.listedTasks(from: tasks, in: .day))) == ["未完了", "今日完了"])
+        #expect(Set(titles(query.listedTasks(from: tasks, in: .all))) == ["今日完了", "昨日完了"])
+        #expect(query.listedTasks(from: tasks, in: .history).isEmpty)
+    }
+
+    // MARK: サブグループの削除
+
+    @Test(arguments: [true, false])
+    func deletingSubgroupKeepsOrRemovesTasks(keepingTasks: Bool) throws {
+        let context = container.mainContext
+        let group = TodoGroup(name: "ホーム", icon: "house.fill", colorHex: "mikan", order: 0)
+        context.insert(group)
+        let viewModel = GroupViewModel(modelContext: context)
+        viewModel.addSubGroup(name: "掃除", to: group, order: 0)
+        let subgroup = try #require(try context.fetch(FetchDescriptor<SubGroup>()).first)
+        let inside = TodoTask(title: "浴室", group: group, subgroup: subgroup)
+        context.insert(inside)
+        try context.save()
+
+        viewModel.deleteSubGroup(subgroup, keepingTasks: keepingTasks)
+        try context.save()
+
+        #expect(try context.fetch(FetchDescriptor<SubGroup>()).isEmpty)
+        let remaining = try context.fetch(FetchDescriptor<TodoTask>())
+        if keepingTasks {
+            #expect(remaining.map(\.title) == ["浴室"])
+            #expect(remaining.first?.subgroup == nil)
+            #expect(remaining.first?.group?.name == "ホーム")
+        } else {
+            #expect(remaining.isEmpty)
+        }
+    }
 }
