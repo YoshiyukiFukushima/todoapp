@@ -178,8 +178,14 @@ struct ContentView: View {
     }
 
     private func seedDefaultGroupIfNeeded() {
-        guard groups.isEmpty else { return }
-        groupViewModel.addGroup(name: "ホーム", icon: "🏠", colorHex: AppTheme.lavender.colorHex, order: 0)
+        guard groups.isEmpty else {
+            // 以前の絵文字・淡い色のグループを新しい形に書き換える（見た目は変わらない）
+            if GroupAppearance.migrateLegacyGroups(groups) > 0 {
+                try? modelContext.save()
+            }
+            return
+        }
+        groupViewModel.addGroup(name: "ホーム", icon: "house.fill", colorHex: DS.Accent.mikan.rawValue, order: 0)
     }
 }
 

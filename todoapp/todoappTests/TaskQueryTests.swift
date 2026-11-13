@@ -332,4 +332,34 @@ struct TaskQueryTests {
         let nextYear = calendar.date(from: DateComponents(year: 2027, month: 1, day: 5, hour: 9))!
         #expect(query.shortDateText(nextYear) == "2027/1/5")
     }
+
+    // MARK: 以前のグループデータの移し替え
+
+    @Test func migrateLegacyGroupsRewritesIconAndColor() {
+        let home = TodoGroup(name: "ホーム", icon: "🏠", colorHex: AppTheme.lavender.colorHex, order: 0)
+        let hobby = TodoGroup(name: "趣味", icon: "🦄", colorHex: "#1E6FD9", order: 1)
+        let modern = TodoGroup(name: "仕事", icon: "briefcase.fill", colorHex: "teal", order: 2)
+        let groups = [home, hobby, modern]
+        groups.forEach { container.mainContext.insert($0) }
+
+        #expect(GroupAppearance.migrateLegacyGroups(groups) == 2)
+        #expect(home.icon == "house.fill")
+        #expect(home.colorHex == "grape")
+        #expect(hobby.icon == GroupAppearance.letterIcon)
+        #expect(hobby.glyph == .letter("趣"))
+        #expect(hobby.colorHex == "sky")
+        #expect(modern.icon == "briefcase.fill")
+        #expect(modern.colorHex == "teal")
+
+        // 2 回目は何も変わらない
+        #expect(GroupAppearance.migrateLegacyGroups(groups) == 0)
+    }
+
+    @Test func iconChoicesAreValidSymbolsWithNames() {
+        #expect(GroupAppearance.iconChoices.count == 24)
+        for symbol in GroupAppearance.iconChoices {
+            #expect(GroupAppearance.glyph(icon: symbol, name: "x") == .symbol(symbol))
+            #expect(GroupAppearance.iconNames[symbol] != nil)
+        }
+    }
 }

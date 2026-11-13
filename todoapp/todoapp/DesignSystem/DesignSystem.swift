@@ -198,6 +198,8 @@ extension DS {
         static let screenTitle = Font.system(.title2, design: .rounded, weight: .heavy)
         /// セクション見出し（未完了・サブグループ・完了済み）
         static let sectionTitle = Font.system(.headline, design: .rounded, weight: .bold)
+        /// グループ編集のプレビューのアイコン
+        static let previewGlyph = Font.system(.largeTitle, design: .rounded, weight: .semibold)
         /// タスク追加・詳細のタイトル入力
         static let inputTitle = Font.system(.title3, design: .rounded, weight: .semibold)
         /// タスク名
@@ -304,6 +306,10 @@ extension DS {
         static let checkbox: CGFloat = 26
         /// サイドバーのグループアイコン
         static let groupIcon: CGFloat = 44
+        /// グループ編集の大きなプレビュー
+        static let groupPreview: CGFloat = 88
+        /// 色を選ぶ丸
+        static let colorSwatch: CGFloat = 32
         /// サイドバー（閉じたとき・開いたとき）
         static let sidebarCollapsed: CGFloat = 68
         static let sidebarExpanded: CGFloat = 248

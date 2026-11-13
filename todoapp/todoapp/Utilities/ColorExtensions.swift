@@ -18,22 +18,9 @@ extension Color {
 
         self.init(.sRGB, red: Double(r) / 255, green: Double(g) / 255, blue: Double(b) / 255, opacity: 1.0)
     }
-
-    func toHex() -> String {
-        guard let cgColor = self.cgColor,
-              let components = cgColor.components,
-              components.count >= 3 else {
-            return "#000000"
-        }
-        
-        let r = Int(components[0] * 255)
-        let g = Int(components[1] * 255)
-        let b = Int(components[2] * 255)
-        
-        return String(format: "#%02X%02X%02X", r, g, b)
-    }
 }
 
+/// 以前のテーマ（淡い 8 色）。保存済みグループの色を新しい差し色へ移し替えるときだけ使う。
 enum AppTheme: String, CaseIterable, Identifiable {
     case lavender, mint, peach, sky, lemon, rose, sage, coral
 

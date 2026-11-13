@@ -78,6 +78,9 @@ struct GroupSidebarPanel: View {
     let onMove: (IndexSet, Int) -> Void
 
     @Environment(\.dsAccent) private var accent
+    @Environment(\.accessibilityReduceMotion) private var reduceMotion
+    /// 並べ替えモード（件数の代わりに ≡ を出す）
+    @State private var isEditing = false
 
     var body: some View {
         VStack(alignment: .leading, spacing: DS.Spacing.s) {
@@ -88,14 +91,30 @@ struct GroupSidebarPanel: View {
                     .font(DS.Typography.sectionTitle)
                     .foregroundStyle(DS.Colors.textPrimary)
                     .accessibilityAddTraits(.isHeader)
+                Spacer(minLength: DS.Spacing.s)
+                Button {
+                    withAnimation(DS.Motion.respecting(reduceMotion)) { isEditing.toggle() }
+                } label: {
+                    Text(isEditing ? "完了" : "編集")
+                        .font(isEditing ? DS.Typography.button : DS.Typography.meta)
+                        .foregroundStyle(accent.text)
+                        .padding(.horizontal, DS.Spacing.m)
+                        .frame(minHeight: DS.Size.minTapTarget)
+                        .contentShape(Rectangle())
+                }
+                .buttonStyle(.plain)
+                .accessibilityHint(isEditing ? "並べ替えを終える" : "グループを並べ替える")
+                .padding(.trailing, DS.Spacing.s)
             }
 
             List {
                 ForEach(groups) { group in
                     row(for: group)
                 }
-                .onMove(perform: onMove)
+                // 並べ替えは編集中だけ（長押しは編集・削除のメニュー）
+                .onMove(perform: isEditing ? onMove : nil)
 
+                if !isEditing {
                 Button(action: onAdd) {
                     Label("新規グループ", systemImage: "plus")
                         .font(DS.Typography.button)
@@ -108,9 +127,11 @@ struct GroupSidebarPanel: View {
                 .listRowInsets(EdgeInsets(top: DS.Spacing.s, leading: DS.Spacing.s, bottom: DS.Spacing.s, trailing: DS.Spacing.s))
                 .listRowBackground(Color.clear)
                 .listRowSeparator(.hidden)
+                }
             }
             .listStyle(.plain)
             .scrollContentBackground(.hidden)
+            .environment(\.editMode, .constant(isEditing ? .active : .inactive))
         }
         .padding(.top, DS.Spacing.s)
         .frame(maxHeight: .infinity, alignment: .top)
@@ -121,7 +142,7 @@ struct GroupSidebarPanel: View {
     private func row(for group: TodoGroup) -> some View {
         let isSelected = group.id == selectedGroupID
         let count = group.incompleteTaskCount
-        return Button { onSelect(group) } label: {
+        return Button { if !isEditing { onSelect(group) } } label: {
             HStack(spacing: DS.Spacing.s) {
                 GroupAvatar(group: group, isSelected: isSelected)
                 Text(group.name)
@@ -129,7 +150,8 @@ struct GroupSidebarPanel: View {
                     .foregroundStyle(DS.Colors.textPrimary)
                     .lineLimit(1)
                 Spacer(minLength: DS.Spacing.s)
-                if count > 0 {
+                // 編集中は件数を消し、同じ場所にシステムの ≡ が出る
+                if count > 0 && !isEditing {
                     Text("\(count)")
                         .font(DS.Typography.counter)
                         .foregroundStyle(DS.Colors.textSecondary)
@@ -144,11 +166,11 @@ struct GroupSidebarPanel: View {
             .contentShape(Rectangle())
         }
         .buttonStyle(.plain)
-        .contextMenu {
+        .contextMenu(isEditing ? nil : ContextMenu {
             Button("編集", systemImage: "pencil") { onEdit(group) }
             Button("削除", systemImage: "trash", role: .destructive) { onDelete(group) }
                 .tint(DS.Colors.danger)
-        }
+        })
         .accessibilityLabel(group.name)
         .accessibilityValue(count > 0 ? "未完了\(count)件" : "")
         .accessibilityAddTraits(isSelected ? [.isSelected] : [])

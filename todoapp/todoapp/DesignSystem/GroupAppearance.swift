@@ -3,8 +3,8 @@
 //  todoapp
 //
 //  グループの見た目（アイコンと色）を、保存データから決める。
-//  保存データ（絵文字・淡い色の hex）はまだ書き換えず、表示のときだけ新しい形に読み替える。
-//  データの移し替えはグループ編集画面で行う（docs/design.md）。
+//  以前の保存データ（絵文字・淡い色の hex）は、起動時に `migrateLegacyGroups` で新しい形に書き換える。
+//  書き換え前のデータが残っていても、表示のときに同じ対応で読み替える（docs/design.md）。
 //
 
 import SwiftUI
@@ -17,6 +17,29 @@ enum GroupGlyph: Equatable {
 }
 
 enum GroupAppearance {
+    /// グループ編集で選べるアイコン（SF Symbols 24 個）
+    static let iconChoices: [String] = [
+        "house.fill", "briefcase.fill", "cart.fill", "fork.knife",
+        "book.fill", "graduationcap.fill", "dumbbell.fill", "figure.run",
+        "heart.fill", "star.fill", "leaf.fill", "pawprint.fill",
+        "car.fill", "airplane", "gift.fill", "banknote.fill",
+        "paintpalette.fill", "music.note", "gamecontroller.fill", "camera.fill",
+        "wrench.and.screwdriver.fill", "bubbles.and.sparkles.fill", "pills.fill", "target",
+    ]
+
+    /// アイコンの読み上げ用の名前
+    static let iconNames: [String: String] = [
+        "house.fill": "家", "briefcase.fill": "仕事かばん", "cart.fill": "買い物かご", "fork.knife": "食事",
+        "book.fill": "本", "graduationcap.fill": "学び", "dumbbell.fill": "筋トレ", "figure.run": "ランニング",
+        "heart.fill": "ハート", "star.fill": "星", "leaf.fill": "葉っぱ", "pawprint.fill": "ペット",
+        "car.fill": "車", "airplane": "旅行", "gift.fill": "プレゼント", "banknote.fill": "お金",
+        "paintpalette.fill": "絵の具", "music.note": "音楽", "gamecontroller.fill": "ゲーム", "camera.fill": "カメラ",
+        "wrench.and.screwdriver.fill": "工具", "bubbles.and.sparkles.fill": "掃除", "pills.fill": "薬", "target": "目標",
+    ]
+
+    /// 保存用の icon 値：SF Symbol 名、または空（＝名前の 1 文字目を表示）
+    static let letterIcon = ""
+
     /// 以前のアイコン候補（絵文字）→ 近い SF Symbol
     static let legacyEmojiSymbols: [String: String] = [
         "🏠": "house.fill",
@@ -97,4 +120,37 @@ enum GroupAppearance {
 extension TodoGroup {
     var glyph: GroupGlyph { GroupAppearance.glyph(icon: icon, name: name) }
     var accent: DS.Accent { GroupAppearance.accent(colorHex: colorHex) }
+}
+
+// MARK: - 以前のデータの移し替え
+
+extension GroupAppearance {
+    /// 以前の絵文字・淡い色で保存されたグループを、新しい形（SF Symbol 名・差し色の名前）に書き換える。
+    /// 見た目は変わらない。何度呼んでも結果は同じ。書き換えた数を返す。
+    @discardableResult
+    static func migrateLegacyGroups(_ groups: [TodoGroup]) -> Int {
+        var changed = 0
+        for group in groups {
+            var didChange = false
+
+            if case .symbol(let symbol) = glyph(icon: group.icon, name: group.name) {
+                if group.icon != symbol {
+                    group.icon = symbol
+                    didChange = true
+                }
+            } else if group.icon != letterIcon {
+                group.icon = letterIcon
+                didChange = true
+            }
+
+            let accentName = accent(colorHex: group.colorHex).rawValue
+            if group.colorHex != accentName {
+                group.colorHex = accentName
+                didChange = true
+            }
+
+            if didChange { changed += 1 }
+        }
+        return changed
+    }
 }
