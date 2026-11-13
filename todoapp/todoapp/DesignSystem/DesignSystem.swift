@@ -306,13 +306,17 @@ extension DS {
         static let checkbox: CGFloat = 26
         /// サイドバーのグループアイコン
         static let groupIcon: CGFloat = 44
+        /// 編集中のサイドバーの小さなグループアイコン
+        static let groupIconCompact: CGFloat = 30
+        /// 行の中で横に並ぶボタンの幅（高さは 44pt のまま）
+        static let compactTapWidth: CGFloat = 36
         /// グループ編集の大きなプレビュー
         static let groupPreview: CGFloat = 88
         /// 色を選ぶ丸
         static let colorSwatch: CGFloat = 32
         /// サイドバー（閉じたとき・開いたとき）
         static let sidebarCollapsed: CGFloat = 68
-        static let sidebarExpanded: CGFloat = 248
+        static let sidebarExpanded: CGFloat = 296
         /// 浮いた＋ボタン（メイン画面のタスク追加の唯一の入口）
         static let fab: CGFloat = 60
         /// ＋ボタンに最後の行が隠れないよう、一覧の下に足す余白
