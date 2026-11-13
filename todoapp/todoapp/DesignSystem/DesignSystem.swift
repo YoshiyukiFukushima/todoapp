@@ -166,6 +166,8 @@ extension DS {
         static let screenTitle = Font.system(.title2, design: .rounded, weight: .heavy)
         /// セクション見出し（未完了・サブグループ・完了済み）
         static let sectionTitle = Font.system(.headline, design: .rounded, weight: .bold)
+        /// タスク追加・詳細のタイトル入力
+        static let inputTitle = Font.system(.title3, design: .rounded, weight: .semibold)
         /// タスク名
         static let taskTitle = Font.system(.body, design: .rounded, weight: .semibold)
         /// 本文（メモなど）

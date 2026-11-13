@@ -310,4 +310,26 @@ struct TaskQueryTests {
             #expect(remaining.isEmpty)
         }
     }
+
+    // MARK: 期限のチップ
+
+    @Test func dueChoiceFromExistingDate() {
+        #expect(DueChoice(date: nil, now: now, calendar: calendar) == .none)
+        #expect(DueChoice(date: day(11, 12, hour: 20), now: now, calendar: calendar) == .today)
+        #expect(DueChoice(date: day(11, 13), now: now, calendar: calendar) == .tomorrow)
+        #expect(DueChoice(date: day(11, 20), now: now, calendar: calendar) == .custom(day(11, 20)))
+    }
+
+    @Test func dueChoiceResolvesDate() {
+        #expect(DueChoice.none.resolvedDate(now: now, calendar: calendar) == nil)
+        #expect(DueChoice.today.resolvedDate(now: now, calendar: calendar) == now)
+        #expect(DueChoice.tomorrow.resolvedDate(now: now, calendar: calendar) == calendar.date(byAdding: .day, value: 1, to: now))
+        #expect(DueChoice.custom(day(11, 20)).resolvedDate(now: now, calendar: calendar) == day(11, 20))
+    }
+
+    @Test func shortDateText() {
+        #expect(query.shortDateText(day(11, 20)) == "11/20(金)")
+        let nextYear = calendar.date(from: DateComponents(year: 2027, month: 1, day: 5, hour: 9))!
+        #expect(query.shortDateText(nextYear) == "2027/1/5")
+    }
 }

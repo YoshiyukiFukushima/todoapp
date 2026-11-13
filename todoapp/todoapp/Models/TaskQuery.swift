@@ -170,14 +170,19 @@ struct TaskQuery {
         case 1: return DueLabel(text: "明日", isOverdue: false)
         case ..<0 where !isCompleted: return DueLabel(text: "\(-diff)日遅れ", isOverdue: true)
         default:
-            let sameYear = calendar.isDate(dueDate, equalTo: now, toGranularity: .year)
-            let formatter = DateFormatter()
-            formatter.calendar = calendar
-            formatter.timeZone = calendar.timeZone
-            formatter.locale = Locale(identifier: "ja_JP")
-            formatter.dateFormat = sameYear ? "M/d(E)" : "yyyy/M/d"
-            return DueLabel(text: formatter.string(from: dueDate), isOverdue: false)
+            return DueLabel(text: shortDateText(dueDate), isOverdue: false)
         }
+    }
+
+    /// 短い日付（今年なら「11/20(金)」、それ以外は「2027/1/5」）
+    func shortDateText(_ date: Date) -> String {
+        let sameYear = calendar.isDate(date, equalTo: now, toGranularity: .year)
+        let formatter = DateFormatter()
+        formatter.calendar = calendar
+        formatter.timeZone = calendar.timeZone
+        formatter.locale = Locale(identifier: "ja_JP")
+        formatter.dateFormat = sameYear ? "M/d(E)" : "yyyy/M/d"
+        return formatter.string(from: date)
     }
 
     // MARK: -

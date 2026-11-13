@@ -88,8 +88,12 @@ struct ContentView: View {
         }
         .sheet(isPresented: $showAddTask) {
             if let group = selectedGroup {
-                TaskEditSheet(group: group, subgroup: nil, task: nil, taskViewModel: taskViewModel)
-                    .dsRoot(accent: accent)
+                TaskEditSheet(
+                    group: group, subgroup: nil, task: nil, taskViewModel: taskViewModel,
+                    // 全てタブ（期限なし・期限切れ）からは期限なし、それ以外は今日（docs/design.md）
+                    defaultDueDate: selectedFilter == .all ? nil : Date()
+                )
+                .dsRoot(accent: accent)
             }
         }
         .sheet(item: $selectedTask) { task in
