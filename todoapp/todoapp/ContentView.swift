@@ -81,7 +81,11 @@ struct ContentView: View {
                 .transition(.move(edge: .leading))
             }
         }
-        .confirmDelete(isPresented: $showDeleteGroupConfirm) {
+        .confirmDelete(
+            isPresented: $showDeleteGroupConfirm,
+            title: "「\(groupPendingDelete?.name ?? "")」を削除しますか？",
+            message: groupDeleteMessage
+        ) {
             if let group = groupPendingDelete {
                 groupViewModel.deleteGroup(group)
             }
@@ -158,6 +162,12 @@ struct ContentView: View {
                                    description: Text("左上のボタンからグループを追加できます。"))
                 .frame(maxWidth: .infinity, maxHeight: .infinity)
         }
+    }
+
+    /// グループ削除の確認文（中のタスクも消えることを伝える）
+    private var groupDeleteMessage: String {
+        let count = groupPendingDelete?.tasks.count ?? 0
+        return count > 0 ? "中のタスク\(count)件も削除されます。元に戻せません。" : "元に戻せません。"
     }
 
     // MARK: - 操作

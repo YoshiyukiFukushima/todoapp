@@ -9,10 +9,17 @@ import SwiftUI
 
 extension View {
     /// 削除前の確認ダイアログ（タスク一覧・タスク詳細・グループ管理で共通）
-    func confirmDelete(isPresented: Binding<Bool>, onDelete: @escaping () -> Void) -> some View {
-        confirmationDialog("本当に削除しますか？", isPresented: isPresented, titleVisibility: .visible) {
+    func confirmDelete(
+        isPresented: Binding<Bool>,
+        title: String = "本当に削除しますか？",
+        message: String? = nil,
+        onDelete: @escaping () -> Void
+    ) -> some View {
+        confirmationDialog(title, isPresented: isPresented, titleVisibility: .visible) {
             Button("削除", role: .destructive, action: onDelete)
             Button("キャンセル", role: .cancel) {}
+        } message: {
+            if let message { Text(message) }
         }
     }
 

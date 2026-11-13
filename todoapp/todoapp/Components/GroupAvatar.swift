@@ -10,6 +10,8 @@ import SwiftUI
 struct GroupAvatar: View {
     let group: TodoGroup
     let isSelected: Bool
+    /// 丸の大きさ（編集中のサイドバーでは小さくする）
+    var size: CGFloat = DS.Size.groupIcon
 
     @Environment(\.dsMonochrome) private var isMonochrome
 
@@ -22,7 +24,7 @@ struct GroupAvatar: View {
             glyph
                 .foregroundStyle(isSelected ? accent.onFill : accent.text)
         }
-        .frame(width: DS.Size.groupIcon, height: DS.Size.groupIcon)
+        .frame(width: size, height: size)
         // 選択中は色だけでなく外側の輪でも示す
         .padding(DS.Spacing.xs)
         .overlay {
@@ -31,15 +33,17 @@ struct GroupAvatar: View {
         }
     }
 
+    private var isCompact: Bool { size < DS.Size.groupIcon }
+
     @ViewBuilder
     private var glyph: some View {
         switch group.glyph {
         case .symbol(let name):
             Image(systemName: name)
-                .font(DS.Typography.icon)
+                .font(isCompact ? DS.Typography.caption : DS.Typography.icon)
         case .letter(let letter):
             Text(letter)
-                .font(DS.Typography.sectionTitle)
+                .font(isCompact ? DS.Typography.caption : DS.Typography.sectionTitle)
         }
     }
 }

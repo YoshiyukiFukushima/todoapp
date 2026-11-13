@@ -139,10 +139,25 @@ struct GroupSidebarPanel: View {
         .dsShadow(.floating)
     }
 
+    @ViewBuilder
     private func row(for group: TodoGroup) -> some View {
+        Group {
+            if isEditing {
+                editingRow(for: group)
+            } else {
+                normalRow(for: group)
+            }
+        }
+        .listRowInsets(EdgeInsets(top: DS.Spacing.xs + DS.Spacing.xxs, leading: DS.Spacing.s, bottom: DS.Spacing.xs + DS.Spacing.xxs, trailing: DS.Spacing.s))
+        .listRowBackground(Color.clear)
+        .listRowSeparator(.hidden)
+    }
+
+    /// ふだん：タップで切り替え、長押しで編集・削除のメニュー
+    private func normalRow(for group: TodoGroup) -> some View {
         let isSelected = group.id == selectedGroupID
         let count = group.incompleteTaskCount
-        return Button { if !isEditing { onSelect(group) } } label: {
+        return Button { onSelect(group) } label: {
             HStack(spacing: DS.Spacing.s) {
                 GroupAvatar(group: group, isSelected: isSelected)
                 Text(group.name)
@@ -150,8 +165,7 @@ struct GroupSidebarPanel: View {
                     .foregroundStyle(DS.Colors.textPrimary)
                     .lineLimit(1)
                 Spacer(minLength: DS.Spacing.s)
-                // 編集中は件数を消し、同じ場所にシステムの ≡ が出る
-                if count > 0 && !isEditing {
+                if count > 0 {
                     Text("\(count)")
                         .font(DS.Typography.counter)
                         .foregroundStyle(DS.Colors.textSecondary)
@@ -166,18 +180,51 @@ struct GroupSidebarPanel: View {
             .contentShape(Rectangle())
         }
         .buttonStyle(.plain)
-        .contextMenu(isEditing ? nil : ContextMenu {
+        .contextMenu {
             Button("編集", systemImage: "pencil") { onEdit(group) }
             Button("削除", systemImage: "trash", role: .destructive) { onDelete(group) }
                 .tint(DS.Colors.danger)
-        })
+        }
         .accessibilityLabel(group.name)
         .accessibilityValue(count > 0 ? "未完了\(count)件" : "")
         .accessibilityAddTraits(isSelected ? [.isSelected] : [])
         .accessibilityAction(named: "編集") { onEdit(group) }
         .accessibilityAction(named: "削除") { onDelete(group) }
-        .listRowInsets(EdgeInsets(top: DS.Spacing.xs + DS.Spacing.xxs, leading: DS.Spacing.s, bottom: DS.Spacing.xs + DS.Spacing.xxs, trailing: DS.Spacing.s))
-        .listRowBackground(Color.clear)
-        .listRowSeparator(.hidden)
+    }
+
+    /// 編集中：左端に ⊖（削除）、右に ✎（編集）。その右にシステムの ≡（並べ替え）が出る。
+    /// 削除と ≡ を離して置き、押し間違いを防ぐ（docs/design.md）
+    private func editingRow(for group: TodoGroup) -> some View {
+        HStack(spacing: DS.Spacing.xs) {
+            Button { onDelete(group) } label: {
+                Image(systemName: "minus.circle.fill")
+                    .font(DS.Typography.icon)
+                    .symbolRenderingMode(.palette)
+                    .foregroundStyle(DS.Colors.onDanger, DS.Colors.danger)
+                    .frame(width: DS.Size.compactTapWidth, height: DS.Size.minTapTarget)
+                    .contentShape(Rectangle())
+            }
+            .buttonStyle(.plain)
+            .accessibilityLabel("\(group.name)を削除")
+
+            GroupAvatar(group: group, isSelected: false, size: DS.Size.groupIconCompact)
+                .accessibilityHidden(true)
+            Text(group.name)
+                .font(DS.Typography.body)
+                .foregroundStyle(DS.Colors.textPrimary)
+                .lineLimit(1)
+            Spacer(minLength: DS.Spacing.xs)
+
+            Button { onEdit(group) } label: {
+                Image(systemName: "pencil")
+                    .font(DS.Typography.icon)
+                    .foregroundStyle(accent.text)
+                    .frame(width: DS.Size.compactTapWidth, height: DS.Size.minTapTarget)
+                    .contentShape(Rectangle())
+            }
+            .buttonStyle(.plain)
+            .accessibilityLabel("\(group.name)を編集")
+        }
+        .transition(.opacity)
     }
 }
