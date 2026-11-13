@@ -12,12 +12,9 @@ struct SettingsView: View {
     var body: some View {
         NavigationStack {
             Form {
-                DSFormSection("テーマ選択") {
-                    ForEach(AppTheme.allCases) { theme in
-                        ThemeRow(theme: theme, isSelected: themeManager.selectedTheme == theme) {
-                            themeManager.selectedTheme = theme
-                        }
-                    }
+                DSFormSection("テーマ") {
+                    ThemePicker(selection: $themeManager.selectedTheme)
+                        .padding(.vertical, DS.Spacing.s)
                 }
 
                 DSFormSection("＋ボタンの位置") {
@@ -29,17 +26,14 @@ struct SettingsView: View {
                     .pickerStyle(.segmented)
                 }
 
-                DSFormSection("完了済みセクション表示") {
-                    Toggle("デフォルトで展開", isOn: $themeManager.isCompletedSectionExpanded)
+                DSFormSection("表示") {
+                    Toggle("「未完了」の見出しを出す", isOn: $themeManager.isStickyHeaderEnabled)
+                    Toggle("履歴を開いた状態で表示", isOn: $themeManager.isCompletedSectionExpanded)
                 }
 
-                DSFormSection("アニメーション") {
-                    Toggle("完了アニメーション", isOn: $themeManager.animationsEnabled)
-                    Toggle("完了後にフェードアウト", isOn: $themeManager.fadeOutOnComplete)
-                }
-
-                DSFormSection("その他") {
-                    Toggle("Sticky Header（未完了を常時表示）", isOn: $themeManager.isStickyHeaderEnabled)
+                DSFormSection("動き") {
+                    Toggle("完了したときのアニメーション", isOn: $themeManager.animationsEnabled)
+                    Toggle("完了したときにゆっくり薄くする", isOn: $themeManager.fadeOutOnComplete)
                 }
             }
             .dsFormBackground()
@@ -47,40 +41,79 @@ struct SettingsView: View {
             .navigationBarTitleDisplayMode(.inline)
             .toolbar {
                 ToolbarItem(placement: .confirmationAction) {
-                    Button {
-                        dismiss()
-                    } label: {
-                        Image(systemName: "xmark")
-                    }
+                    Button("完了") { dismiss() }
                 }
+            }
+        }
+        // テーマを変えたら、この画面にもすぐ反映する
+        .dsRoot(theme: themeManager.selectedTheme)
+    }
+}
+
+/// テーマを選ぶ色の丸（9 種類）
+private struct ThemePicker: View {
+    @Binding var selection: ColorTheme
+
+    @Environment(\.accessibilityReduceMotion) private var reduceMotion
+
+    private let columns = Array(repeating: GridItem(.flexible(), spacing: DS.Spacing.s), count: 5)
+
+    var body: some View {
+        LazyVGrid(columns: columns, spacing: DS.Spacing.m) {
+            ForEach(ColorTheme.allCases) { theme in
+                let isSelected = selection == theme
+                Button {
+                    withAnimation(DS.Motion.respecting(reduceMotion)) { selection = theme }
+                } label: {
+                    VStack(spacing: DS.Spacing.xs) {
+                        ThemeSwatch(theme: theme, isSelected: isSelected)
+                        Text(theme.displayName)
+                            .font(DS.Typography.caption)
+                            .foregroundStyle(isSelected ? DS.Colors.textPrimary : DS.Colors.textSecondary)
+                            .lineLimit(1)
+                            .minimumScaleFactor(0.8)
+                    }
+                    .frame(maxWidth: .infinity)
+                    .contentShape(Rectangle())
+                }
+                .buttonStyle(.plain)
+                .accessibilityLabel(theme.displayName)
+                .accessibilityAddTraits(isSelected ? [.isSelected] : [])
             }
         }
     }
 }
 
-/// テーマ 1 行（色見本・名前・選択中の印）
-private struct ThemeRow: View {
-    let theme: AppTheme
+/// テーマの色見本。モノクロは白と黒の半分ずつ
+private struct ThemeSwatch: View {
+    let theme: ColorTheme
     let isSelected: Bool
-    let onSelect: () -> Void
 
     var body: some View {
-        Button(action: onSelect) {
-            HStack {
+        ZStack {
+            if theme.isMonochrome {
+                Circle().fill(DS.Colors.monoSwatchLight)
                 Circle()
-                    .fill(theme.accent.fill)
-                    .frame(width: DS.Size.checkbox, height: DS.Size.checkbox)
-                Text(theme.displayName)
-                    .foregroundStyle(DS.Colors.textPrimary)
-                Spacer()
-                if isSelected {
-                    Image(systemName: "checkmark")
-                        .font(DS.Typography.icon)
-                        .foregroundStyle(theme.accent.fill)
-                }
+                    .trim(from: 0, to: 0.5)
+                    .fill(DS.Colors.monoSwatchDark)
+                    .rotationEffect(.degrees(-45))
+                Circle().strokeBorder(DS.Colors.separator, lineWidth: DS.Stroke.hairline * 2)
+            } else {
+                Circle().fill(theme.accent.fill)
             }
-            .contentShape(Rectangle())
+            if isSelected {
+                Image(systemName: "checkmark")
+                    .font(DS.Typography.iconSmall)
+                    .foregroundStyle(theme.isMonochrome ? DS.Colors.monoSwatchLight : theme.accent.onFill)
+                    .padding(DS.Spacing.xs)
+                    .background(theme.isMonochrome ? DS.Colors.monoSwatchDark : .clear, in: Circle())
+            }
         }
-        .buttonStyle(.plain)
+        .frame(width: DS.Size.groupIcon, height: DS.Size.groupIcon)
+        .padding(DS.Spacing.xxs)
+        .overlay {
+            Circle()
+                .strokeBorder(isSelected ? DS.Colors.textPrimary : .clear, lineWidth: DS.Stroke.regular)
+        }
     }
 }

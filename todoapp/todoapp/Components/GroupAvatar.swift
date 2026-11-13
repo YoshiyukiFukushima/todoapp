@@ -11,8 +11,11 @@ struct GroupAvatar: View {
     let group: TodoGroup
     let isSelected: Bool
 
+    @Environment(\.dsMonochrome) private var isMonochrome
+
     var body: some View {
-        let accent = group.accent
+        // モノクロではグループも墨色（形と名前で見分ける）
+        let accent = isMonochrome ? DS.Accent.ink : group.accent
         ZStack {
             Circle()
                 .fill(isSelected ? accent.fill : accent.soft)

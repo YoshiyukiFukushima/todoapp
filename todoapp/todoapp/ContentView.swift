@@ -30,7 +30,7 @@ struct ContentView: View {
     private var taskViewModel: TaskViewModel { TaskViewModel(modelContext: modelContext) }
     private var groupViewModel: GroupViewModel { GroupViewModel(modelContext: modelContext) }
 
-    private var accent: DS.Accent { themeManager.selectedTheme.accent }
+    private var theme: ColorTheme { themeManager.selectedTheme }
 
     private var selectedGroup: TodoGroup? {
         groups.first(where: { $0.id == selectedGroupID }) ?? groups.first
@@ -93,26 +93,27 @@ struct ContentView: View {
                     // 全てタブ（期限なし・期限切れ）からは期限なし、それ以外は今日（docs/design.md）
                     defaultDueDate: selectedFilter == .all ? nil : Date()
                 )
-                .dsRoot(accent: accent)
+                .dsRoot(theme: theme)
             }
         }
         .sheet(item: $selectedTask) { task in
             TaskEditSheet(group: task.group, subgroup: task.subgroup, task: task, taskViewModel: taskViewModel)
-                .dsRoot(accent: accent)
+                .dsRoot(theme: theme)
         }
         .sheet(isPresented: $showSettings) {
             SettingsView()
-                .dsRoot(accent: accent)
+                .dsRoot(theme: theme)
         }
         .sheet(item: $editingGroup) { group in
             GroupEditSheet(group: group, groupViewModel: groupViewModel)
-                .dsRoot(accent: accent)
+                .dsRoot(theme: theme)
         }
         .sheet(isPresented: $showAddGroup) {
             GroupEditSheet(group: nil, groupViewModel: groupViewModel, nextOrder: groups.count)
-                .dsRoot(accent: accent)
+                .dsRoot(theme: theme)
         }
-        .dsRoot(accent: accent)
+        .dsRoot(theme: theme)
+        .dsApplyMonochromeToWindows(theme.isMonochrome)
         .onAppear(perform: seedDefaultGroupIfNeeded)
         // 「先頭のグループ」を暗黙に選ぶと並べ替えで選択が変わるため、選択を明示的に持つ
         .onChange(of: groups.map(\.id), initial: true) { _, ids in

@@ -20,6 +20,18 @@ extension Color {
             UIColor(rgb: traits.userInterfaceStyle == .dark ? dark : light)
         })
     }
+
+    /// ライト／ダーク × 通常／モノクロで切り替わる色。
+    /// モノクロかどうかはトレイト（DSMonochromeTrait）で決まるので、テーマを変えると自動で塗り直される。
+    init(light: UInt32, dark: UInt32, monoLight: UInt32, monoDark: UInt32) {
+        self.init(uiColor: UIColor { traits in
+            let isDark = traits.userInterfaceStyle == .dark
+            if traits.dsMonochrome {
+                return UIColor(rgb: isDark ? monoDark : monoLight)
+            }
+            return UIColor(rgb: isDark ? dark : light)
+        })
+    }
 }
 
 private extension UIColor {
@@ -42,8 +54,13 @@ extension DS {
     /// - soft: 淡い面（チップ・操作タイル・選択中の行）。
     enum Accent: String, CaseIterable, Identifiable, Sendable {
         case mikan, tomato, berry, grape, sky, teal, leaf, cocoa
+        /// 墨色（モノクロのテーマ・モノクロ時のグループ）。グループの色としては選べない
+        case ink
 
         var id: String { rawValue }
+
+        /// グループの色として選べる 8 色
+        static let palette: [Accent] = [.mikan, .tomato, .berry, .grape, .sky, .teal, .leaf, .cocoa]
 
         var displayName: String {
             switch self {
@@ -55,6 +72,7 @@ extension DS {
             case .teal: "みなも"
             case .leaf: "わかば"
             case .cocoa: "ココア"
+            case .ink: "モノクロ"
             }
         }
 
@@ -68,6 +86,8 @@ extension DS {
             case .teal: Color(light: 0x13897A, dark: 0x179A89)
             case .leaf: Color(light: 0x3E8E3A, dark: 0x4A9E45)
             case .cocoa: Color(light: 0x8A5A3B, dark: 0x9A6A4A)
+            // ダークでは白いトグルのつまみが見えるよう、明るすぎないグレーにする
+            case .ink: Color(light: 0x1F1F1F, dark: 0xA8A8A8)
             }
         }
 
@@ -81,6 +101,7 @@ extension DS {
             case .teal: Color(light: 0x0E6E62, dark: 0x6FD3C3)
             case .leaf: Color(light: 0x2F7A2C, dark: 0x8FD38A)
             case .cocoa: Color(light: 0x7A4C30, dark: 0xD7AE91)
+            case .ink: Color(light: 0x1F1F1F, dark: 0xEDEDED)
             }
         }
 
@@ -94,11 +115,15 @@ extension DS {
             case .teal: Color(light: 0xD4EEEA, dark: 0x15302C)
             case .leaf: Color(light: 0xDDEFD9, dark: 0x1C301B)
             case .cocoa: Color(light: 0xEFE2D8, dark: 0x33261D)
+            case .ink: Color(light: 0xE6E6E6, dark: 0x333333)
             }
         }
 
         /// 塗りの上に載せる文字・アイコン色
-        var onFill: Color { .white }
+        var onFill: Color {
+            // 墨色はダークで明るいグレーになるので、上の文字は黒にする
+            self == .ink ? Color(light: 0xFFFFFF, dark: 0x111111) : .white
+        }
     }
 }
 
@@ -118,23 +143,23 @@ extension EnvironmentValues {
 
 extension DS {
     enum Colors {
-        /// 画面の一番下の面（あたたかいオフホワイト）
-        static let background = Color(light: 0xFFF7EF, dark: 0x17120D)
+        /// 画面の一番下の面（あたたかいオフホワイト。モノクロでは色味のない白・グレー・黒）
+        static let background = Color(light: 0xFFF7EF, dark: 0x17120D, monoLight: 0xF5F5F5, monoDark: 0x111111)
         /// カード・行の面
-        static let surface = Color(light: 0xFFFFFF, dark: 0x241D17)
+        static let surface = Color(light: 0xFFFFFF, dark: 0x241D17, monoLight: 0xFFFFFF, monoDark: 0x1E1E1E)
         /// へこんだ面（セグメントの溝、サイドバー、輪の未達部分）
-        static let surfaceSunken = Color(light: 0xF6E7D8, dark: 0x2E251D)
+        static let surfaceSunken = Color(light: 0xF6E7D8, dark: 0x2E251D, monoLight: 0xEBEBEB, monoDark: 0x2A2A2A)
         /// セグメントで選ばれている部分（ダークでは溝より明るくする）
-        static let segmentSelected = Color(light: 0xFFFFFF, dark: 0x4A3D31)
+        static let segmentSelected = Color(light: 0xFFFFFF, dark: 0x4A3D31, monoLight: 0xFFFFFF, monoDark: 0x474747)
         /// シート・浮いたパネル
-        static let surfaceElevated = Color(light: 0xFFFFFF, dark: 0x2C241C)
+        static let surfaceElevated = Color(light: 0xFFFFFF, dark: 0x2C241C, monoLight: 0xFFFFFF, monoDark: 0x262626)
 
-        static let textPrimary = Color(light: 0x3A2410, dark: 0xF7EDE4)
-        static let textSecondary = Color(light: 0x8A6A4F, dark: 0xBFA892)
+        static let textPrimary = Color(light: 0x3A2410, dark: 0xF7EDE4, monoLight: 0x1A1A1A, monoDark: 0xF2F2F2)
+        static let textSecondary = Color(light: 0x8A6A4F, dark: 0xBFA892, monoLight: 0x6B6B6B, monoDark: 0xA8A8A8)
         /// 補助的な飾り（区切りの記号、無効状態）。本文には使わない。
-        static let textTertiary = Color(light: 0xB59A82, dark: 0x8C7663)
+        static let textTertiary = Color(light: 0xB59A82, dark: 0x8C7663, monoLight: 0xA3A3A3, monoDark: 0x6E6E6E)
 
-        static let separator = Color(light: 0xF0E2D4, dark: 0x3A3027)
+        static let separator = Color(light: 0xF0E2D4, dark: 0x3A3027, monoLight: 0xE3E3E3, monoDark: 0x333333)
 
         /// 期限切れ・削除
         static let danger = Color(light: 0xD23B2E, dark: 0xFF6B5E)
@@ -142,7 +167,11 @@ extension DS {
         /// 赤い塗り（バッジなど）の上に載せる文字
         static let onDanger = Color.white
         /// 進み具合 100% の輪
-        static let success = Color(light: 0x3FA34D, dark: 0x5CC46A)
+        static let success = Color(light: 0x3FA34D, dark: 0x5CC46A, monoLight: 0x1A1A1A, monoDark: 0xF2F2F2)
+
+        /// モノクロのテーマの色見本（白と黒。ライト／ダークで変えない）
+        static let monoSwatchLight = Color.white
+        static let monoSwatchDark = Color(light: 0x1A1A1A, dark: 0x1A1A1A)
 
         /// サイドバーを開いたときに一覧へかける暗幕
         static let scrim = Color(uiColor: UIColor { traits in
@@ -151,8 +180,11 @@ extension DS {
 
         /// 影の色（ダークでは黒を濃くする）
         static let shadow = Color(uiColor: UIColor { traits in
-            traits.userInterfaceStyle == .dark
-                ? UIColor.black.withAlphaComponent(0.45)
+            if traits.userInterfaceStyle == .dark {
+                return UIColor.black.withAlphaComponent(0.45)
+            }
+            return traits.dsMonochrome
+                ? UIColor.black.withAlphaComponent(0.08)
                 : UIColor(red: 0.36, green: 0.20, blue: 0.06, alpha: 0.10)
         })
     }

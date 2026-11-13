@@ -86,7 +86,8 @@ struct TaskEditSheet: View {
         }
         .presentationDetents(isNew ? [.medium, .large] : [.large], selection: $detent)
         .presentationDragIndicator(.visible)
-        .presentationBackground(DS.Colors.background)
+        // 色ではなくビューで渡す（シートの外枠ではテーマの環境値が届かず、モノクロにならないため）
+        .presentationBackground { DS.Colors.background }
         .onAppear(perform: loadInitialValues)
         .confirmDelete(isPresented: $showDeleteConfirm) {
             if let task {

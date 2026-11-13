@@ -53,10 +53,24 @@ enum GroupAppearance {
             return accent
         }
         let normalized = colorHex.uppercased()
-        if let theme = AppTheme.allCases.first(where: { $0.colorHex.uppercased() == normalized }) {
-            return theme.accent
+        if let legacy = AppTheme.allCases.first(where: { $0.colorHex.uppercased() == normalized }) {
+            return legacyAccent(legacy)
         }
         return nearestAccent(to: UIColor(Color(hex: colorHex)))
+    }
+
+    /// 以前の淡い 8 色 → 新しい 8 色
+    private static func legacyAccent(_ legacy: AppTheme) -> DS.Accent {
+        switch legacy {
+        case .lavender: .grape
+        case .mint: .teal
+        case .peach: .mikan
+        case .sky: .sky
+        case .lemon: .cocoa
+        case .rose: .berry
+        case .sage: .leaf
+        case .coral: .tomato
+        }
     }
 
     private static func nearestAccent(to color: UIColor) -> DS.Accent {

@@ -27,9 +27,11 @@ extension View {
         listRowBackground(DS.Colors.surface)
     }
 
-    /// アプリ全体に差し色・丸い書体を行き渡らせる。ルートとシートの中身に付ける。
-    func dsRoot(accent: DS.Accent) -> some View {
-        environment(\.dsAccent, accent)
+    /// アプリ全体にテーマ（差し色・モノクロ）と丸い書体を行き渡らせる。ルートとシートの中身に付ける。
+    func dsRoot(theme: ColorTheme) -> some View {
+        let accent = theme.accent
+        return environment(\.dsAccent, accent)
+            .environment(\.dsMonochrome, theme.isMonochrome)
             .tint(accent.fill)
             .fontDesign(.rounded)
             .foregroundStyle(DS.Colors.textPrimary)
@@ -55,22 +57,5 @@ struct DSFormSection<Content: View>: View {
                 .foregroundStyle(DS.Colors.textSecondary)
         }
         .dsFormRow()
-    }
-}
-
-extension AppTheme {
-    /// 【暫定・フェーズ3】今のテーマ設定を新しい差し色へ対応づける。
-    /// テーマの保存値の移し替えと既定値（みかん）はフェーズ4で決める（docs/design.md）。
-    var accent: DS.Accent {
-        switch self {
-        case .lavender: .grape
-        case .mint: .teal
-        case .peach: .mikan
-        case .sky: .sky
-        case .lemon: .cocoa
-        case .rose: .berry
-        case .sage: .leaf
-        case .coral: .tomato
-        }
     }
 }

@@ -22,7 +22,8 @@ enum AddButtonPosition: String, CaseIterable, Identifiable {
 
 final class ThemeManager: ObservableObject {
     private enum Keys {
-        static let theme = "selectedTheme"
+        /// 新しいテーマ（以前の "selectedTheme" は引き継がず、全員みかん色から始める。docs/design.md）
+        static let theme = "colorTheme"
         static let animationsEnabled = "animationsEnabled"
         static let fadeOutOnComplete = "fadeOutOnComplete"
         static let addButtonPosition = "addButtonPosition"
@@ -30,7 +31,7 @@ final class ThemeManager: ObservableObject {
         static let isStickyHeaderEnabled = "isStickyHeaderEnabled"
     }
 
-    @Published var selectedTheme: AppTheme {
+    @Published var selectedTheme: ColorTheme {
         didSet { UserDefaults.standard.set(selectedTheme.rawValue, forKey: Keys.theme) }
     }
 
@@ -57,8 +58,8 @@ final class ThemeManager: ObservableObject {
 
     init() {
         let defaults = UserDefaults.standard
-        let rawTheme = defaults.string(forKey: Keys.theme) ?? AppTheme.lavender.rawValue
-        selectedTheme = AppTheme(rawValue: rawTheme) ?? .lavender
+        let rawTheme = defaults.string(forKey: Keys.theme) ?? ColorTheme.defaultTheme.rawValue
+        selectedTheme = ColorTheme(rawValue: rawTheme) ?? .defaultTheme
         animationsEnabled = defaults.object(forKey: Keys.animationsEnabled) as? Bool ?? true
         fadeOutOnComplete = defaults.object(forKey: Keys.fadeOutOnComplete) as? Bool ?? false
         let rawPosition = defaults.string(forKey: Keys.addButtonPosition) ?? AddButtonPosition.bottomTrailing.rawValue
