@@ -12,6 +12,9 @@ struct TaskRowView: View {
     let onTap: () -> Void
     let onToggleComplete: () -> Void
 
+    @Environment(\.dsStyle) private var style
+    @Environment(BubbleEffects.self) private var bubbleEffects: BubbleEffects?
+
     var body: some View {
         HStack(alignment: .top, spacing: 0) {
             CheckButton(
@@ -20,7 +23,7 @@ struct TaskRowView: View {
                 animationsEnabled: animationsEnabled,
                 action: onToggleComplete
             )
-            .padding(.leading, DS.Spacing.xs)
+            .padding(.leading, style == .bubble ? DS.Spacing.s : DS.Spacing.xs)
             .padding(.top, DS.Spacing.xs)
 
             Button(action: onTap) {
@@ -33,8 +36,12 @@ struct TaskRowView: View {
             .buttonStyle(.plain)
             .accessibilityHint("詳細を開く")
         }
-        .background(DS.Colors.surface, in: RoundedRectangle(cornerRadius: DS.Radius.l))
-        .dsShadow(task.isCompleted ? .none : .card)
+        .dsSurface(.card, elevation: task.isCompleted ? .none : .card)
+        // 全部終わったときに、このカードから泡をあふれさせるため位置を知らせる
+        .onGeometryChange(for: CGRect.self) { $0.frame(in: .global) } action: { frame in
+            if style.hasCompletionEffects { bubbleEffects?.updateCardFrame(frame, for: task.id) }
+        }
+        .onDisappear { bubbleEffects?.removeCardFrame(for: task.id) }
         .opacity(task.isCompleted ? DS.Opacity.completed : 1)
         .animation(fadeOutOnComplete ? DS.Motion.fade : nil, value: task.isCompleted)
     }

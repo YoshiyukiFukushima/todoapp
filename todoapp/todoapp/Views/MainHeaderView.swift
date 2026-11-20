@@ -56,8 +56,7 @@ struct MainHeaderView: View {
                     .font(DS.Typography.icon)
                     .foregroundStyle(DS.Colors.textPrimary)
                     .frame(width: DS.Size.minTapTarget, height: DS.Size.minTapTarget)
-                    .background(DS.Colors.surface, in: Circle())
-                    .dsShadow(.card)
+                    .dsSurface(.circle)
             }
             .buttonStyle(.plain)
             .accessibilityLabel("設定")

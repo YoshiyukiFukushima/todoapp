@@ -15,6 +15,8 @@ struct TaskListView: View {
 
     @EnvironmentObject private var themeManager: ThemeManager
     @Environment(\.accessibilityReduceMotion) private var reduceMotion
+    @Environment(\.dsStyle) private var style
+    @Environment(BubbleEffects.self) private var bubbleEffects: BubbleEffects?
     @State private var taskPendingDelete: TodoTask?
     @State private var showDeleteConfirm = false
     @State private var manualExpandOverrides: [Int: Bool] = [:]
@@ -77,7 +79,6 @@ struct TaskListView: View {
                 .contentMargins(.bottom, DS.Size.fabClearance, for: .scrollContent)
             }
         }
-        .background(DS.Colors.background)
         .alert("サブグループを追加", isPresented: $showAddSubgroup) {
             TextField("名前（例：週末の掃除）", text: $newSubgroupName)
             Button("追加") { addSubgroup() }
@@ -200,6 +201,18 @@ struct TaskListView: View {
         manualExpandOverrides[dateGroup.id] ?? (themeManager.isCompletedSectionExpanded || dateGroup.id == 0)
     }
 
+    // MARK: - 完了
+
+    private func toggleComplete(_ task: TodoTask) {
+        let willComplete = !task.isCompleted
+        taskViewModel.toggleComplete(task)
+        // このタブのタスクが全部終わったら、ご褒美の演出
+        guard willComplete, style.hasCompletionEffects, themeManager.animationsEnabled, !reduceMotion,
+              let progress = TaskQuery().progress(in: group.tasks, for: filter),
+              progress.total > 0, progress.done == progress.total else { return }
+        bubbleEffects?.celebrate()
+    }
+
     // MARK: - 共通行
 
     private var headerInsets: EdgeInsets {
@@ -217,7 +230,7 @@ struct TaskListView: View {
             animationsEnabled: themeManager.animationsEnabled,
             fadeOutOnComplete: themeManager.fadeOutOnComplete,
             onTap: { onSelectTask(task) },
-            onToggleComplete: { taskViewModel.toggleComplete(task) }
+            onToggleComplete: { toggleComplete(task) }
         )
         .listRowInsets(rowInsets)
         .listRowSeparator(.hidden)
