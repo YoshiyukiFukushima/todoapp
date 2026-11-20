@@ -194,3 +194,12 @@
   - 期限順の 1 本の一覧にする。グループごと・サブグループごとの見出しは出さない。「サブグループを追加」も出さない。
   - 行には、期限・繰り返しと同じ並びに**グループのアイコンと名前**を出す。
 - ＋で追加するときの追加先は、**直前に開いていたグループ**（なければ先頭のグループ）。シートの「グループ」チップで変えられる。
+
+## 2026-11-21 ウィジェットとロック画面
+
+要件・ユーザーストーリー・決めたことは `docs/widgets.md` にまとめた。実装の決まりだけここに書く。
+- データ（SwiftData）と設定（UserDefaults）は **App Group `group.com.yoshiyuki.todoapp`** に置く（`Shared/SharedStore.swift`）。以前のデータは初回起動時に写し、元のファイルは控えとして残す。
+- ウィジェットと共有するファイルは、`todoapp` フォルダの「TodoWidgetsExtension」の例外（membership exceptions）に並べる。共有するファイルでは `UIApplication` を使わない（アプリ専用のものは `DSModifiers.swift` などへ）。
+- ウィジェットに出すタスクの選び方は `Shared/WidgetTaskQuery.swift` にまとめ、テストで確かめる。
+- ウィジェットからアプリを開く URL は `todoapp://task/<id>`・`todoapp://group/<id>`・`todoapp://all`。
+- アプリでタスク・グループ・テーマを変えたら、ウィジェットを描き直す。
