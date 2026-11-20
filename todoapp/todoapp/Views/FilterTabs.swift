@@ -37,9 +37,7 @@ struct FilterTabs: View {
                     .frame(maxWidth: .infinity, minHeight: DS.Size.segmentHeight)
                     .background {
                         if isSelected {
-                            Capsule()
-                                .fill(DS.Colors.segmentSelected)
-                                .dsShadow(.card)
+                            SelectedTabSurface()
                                 .matchedGeometryEffect(id: "selected", in: namespace)
                         }
                     }
@@ -53,6 +51,20 @@ struct FilterTabs: View {
         .padding(DS.Spacing.xs)
         .frame(minHeight: DS.Size.minTapTarget)
         .background(DS.Colors.surfaceSunken, in: Capsule())
+    }
+
+    /// 選んだタブのカプセル（泡のテーマではガラス）
+    private struct SelectedTabSurface: View {
+        @Environment(\.dsStyle) private var style
+
+        var body: some View {
+            switch style {
+            case .standard:
+                Capsule().fill(DS.Colors.segmentSelected).dsShadow(.card)
+            case .bubble:
+                DSSurface(shape: .capsule)
+            }
+        }
     }
 
     private func accessibilityLabel(for filter: TaskFilter, count: Int?) -> String {

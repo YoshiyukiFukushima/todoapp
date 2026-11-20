@@ -38,7 +38,7 @@ extension View {
     func dsRoot(theme: ColorTheme) -> some View {
         let accent = theme.accent
         return environment(\.dsAccent, accent)
-            .environment(\.dsMonochrome, theme.isMonochrome)
+            .environment(\.dsTheme, theme)
             .tint(accent.fill)
             .fontDesign(.rounded)
             .foregroundStyle(DS.Colors.textPrimary)

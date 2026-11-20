@@ -50,7 +50,7 @@ struct SettingsView: View {
     }
 }
 
-/// テーマを選ぶ色の丸（9 種類）
+/// テーマを選ぶ丸（差し色 8 色・モノクロ・泡）
 private struct ThemePicker: View {
     @Binding var selection: ColorTheme
 
@@ -84,27 +84,18 @@ private struct ThemePicker: View {
     }
 }
 
-/// テーマの色見本。モノクロは白と黒の半分ずつ
+/// テーマの見本。モノクロは白と黒の半分ずつ、泡は水の中のシャボン玉
 private struct ThemeSwatch: View {
     let theme: ColorTheme
     let isSelected: Bool
 
     var body: some View {
         ZStack {
-            if theme.isMonochrome {
-                Circle().fill(DS.Colors.monoSwatchLight)
-                Circle()
-                    .trim(from: 0, to: 0.5)
-                    .fill(DS.Colors.monoSwatchDark)
-                    .rotationEffect(.degrees(-45))
-                Circle().strokeBorder(DS.Colors.separator, lineWidth: DS.Stroke.hairline * 2)
-            } else {
-                Circle().fill(theme.accent.fill)
-            }
+            face
             if isSelected {
                 Image(systemName: "checkmark")
                     .font(DS.Typography.iconSmall)
-                    .foregroundStyle(theme.isMonochrome ? DS.Colors.monoSwatchLight : theme.accent.onFill)
+                    .foregroundStyle(checkColor)
                     .padding(DS.Spacing.xs)
                     .background(theme.isMonochrome ? DS.Colors.monoSwatchDark : .clear, in: Circle())
             }
@@ -115,5 +106,41 @@ private struct ThemeSwatch: View {
             Circle()
                 .strokeBorder(isSelected ? DS.Colors.textPrimary : .clear, lineWidth: DS.Stroke.regular)
         }
+    }
+
+    @ViewBuilder
+    private var face: some View {
+        switch theme.style {
+        case .bubble:
+            ZStack {
+                Circle().fill(LinearGradient(colors: [DS.Bubble.glowBlue, DS.Bubble.deepTop, DS.Bubble.glowViolet],
+                                             startPoint: .topLeading, endPoint: .bottomTrailing))
+                BubbleSphere(isFilled: false)
+                    .frame(width: DS.Size.groupIcon * 0.42, height: DS.Size.groupIcon * 0.42)
+                    .offset(x: -DS.Size.groupIcon * 0.1, y: DS.Size.groupIcon * 0.08)
+                BubbleSphere(isFilled: false)
+                    .frame(width: DS.Size.groupIcon * 0.22, height: DS.Size.groupIcon * 0.22)
+                    .offset(x: DS.Size.groupIcon * 0.2, y: -DS.Size.groupIcon * 0.18)
+            }
+            .clipShape(Circle())
+        case .standard:
+            if theme.isMonochrome {
+                ZStack {
+                    Circle().fill(DS.Colors.monoSwatchLight)
+                    Circle()
+                        .trim(from: 0, to: 0.5)
+                        .fill(DS.Colors.monoSwatchDark)
+                        .rotationEffect(.degrees(-45))
+                    Circle().strokeBorder(DS.Colors.separator, lineWidth: DS.Stroke.hairline * 2)
+                }
+            } else {
+                Circle().fill(theme.accent.fill)
+            }
+        }
+    }
+
+    private var checkColor: Color {
+        if theme.isMonochrome { return DS.Colors.monoSwatchLight }
+        return theme.style == .bubble ? DS.Bubble.rim : theme.accent.onFill
     }
 }

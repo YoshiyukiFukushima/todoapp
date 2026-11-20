@@ -26,6 +26,8 @@ struct ContentView: View {
     @State private var showAddGroup = false
     @State private var groupPendingDelete: TodoGroup?
     @State private var showDeleteGroupConfirm = false
+    /// 泡のテーマの、はじける演出（画面全体に重ねて描く）
+    @State private var bubbleEffects = BubbleEffects()
 
     private var taskViewModel: TaskViewModel { TaskViewModel(modelContext: modelContext) }
     private var groupViewModel: GroupViewModel { GroupViewModel(modelContext: modelContext) }
@@ -54,7 +56,7 @@ struct ContentView: View {
 
                 mainColumn
             }
-            .background(DS.Colors.background.ignoresSafeArea())
+            .background { DSScreenBackground().ignoresSafeArea() }
 
             if isSidebarOpen {
                 DS.Colors.scrim
@@ -116,8 +118,14 @@ struct ContentView: View {
             GroupEditSheet(group: nil, groupViewModel: groupViewModel, nextOrder: groups.count)
                 .dsRoot(theme: theme)
         }
+        .overlay {
+            if theme.style.hasCompletionEffects {
+                BubbleEffectsLayer(effects: bubbleEffects)
+            }
+        }
+        .environment(bubbleEffects)
         .dsRoot(theme: theme)
-        .dsApplyMonochromeToWindows(theme.isMonochrome)
+        .dsApplyThemeToWindows(theme)
         .onAppear(perform: seedDefaultGroupIfNeeded)
         // 「先頭のグループ」を暗黙に選ぶと並べ替えで選択が変わるため、選択を明示的に持つ
         .onChange(of: groups.map(\.id), initial: true) { _, ids in

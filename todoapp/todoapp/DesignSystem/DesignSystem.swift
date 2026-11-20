@@ -21,27 +21,16 @@ extension Color {
         })
     }
 
-    /// ライト／ダーク × 通常／モノクロで切り替わる色。
-    /// モノクロかどうかはトレイト（DSMonochromeTrait）で決まるので、テーマを変えると自動で塗り直される。
-    init(light: UInt32, dark: UInt32, monoLight: UInt32, monoDark: UInt32) {
-        self.init(uiColor: UIColor { traits in
-            let isDark = traits.userInterfaceStyle == .dark
-            if traits.dsMonochrome {
-                return UIColor(rgb: isDark ? monoDark : monoLight)
-            }
-            return UIColor(rgb: isDark ? dark : light)
-        })
+    /// ライト／ダークで変えない色
+    init(fixed rgb: UInt32) {
+        self.init(uiColor: UIColor(rgb: rgb))
     }
-}
 
-private extension UIColor {
-    convenience init(rgb: UInt32) {
-        self.init(
-            red: CGFloat((rgb >> 16) & 0xFF) / 255,
-            green: CGFloat((rgb >> 8) & 0xFF) / 255,
-            blue: CGFloat(rgb & 0xFF) / 255,
-            alpha: 1
-        )
+    /// 今のテーマの色の表から取る色。テーマはトレイト（DSThemeTrait）で決まるので、テーマを変えると自動で塗り直される。
+    init(token: DSColorToken) {
+        self.init(uiColor: UIColor { traits in
+            traits.dsTheme.palette[token].resolve(isDark: traits.userInterfaceStyle == .dark)
+        })
     }
 }
 
@@ -143,23 +132,24 @@ extension EnvironmentValues {
 
 extension DS {
     enum Colors {
-        /// 画面の一番下の面（あたたかいオフホワイト。モノクロでは色味のない白・グレー・黒）
-        static let background = Color(light: 0xFFF7EF, dark: 0x17120D, monoLight: 0xF5F5F5, monoDark: 0x111111)
+        // テーマで変わる色（値は ThemePalettes.swift の表）
+        /// 画面の一番下の面
+        static let background = Color(token: .background)
         /// カード・行の面
-        static let surface = Color(light: 0xFFFFFF, dark: 0x241D17, monoLight: 0xFFFFFF, monoDark: 0x1E1E1E)
+        static let surface = Color(token: .surface)
         /// へこんだ面（セグメントの溝、サイドバー、輪の未達部分）
-        static let surfaceSunken = Color(light: 0xF6E7D8, dark: 0x2E251D, monoLight: 0xEBEBEB, monoDark: 0x2A2A2A)
+        static let surfaceSunken = Color(token: .surfaceSunken)
         /// セグメントで選ばれている部分（ダークでは溝より明るくする）
-        static let segmentSelected = Color(light: 0xFFFFFF, dark: 0x4A3D31, monoLight: 0xFFFFFF, monoDark: 0x474747)
+        static let segmentSelected = Color(token: .segmentSelected)
         /// シート・浮いたパネル
-        static let surfaceElevated = Color(light: 0xFFFFFF, dark: 0x2C241C, monoLight: 0xFFFFFF, monoDark: 0x262626)
+        static let surfaceElevated = Color(token: .surfaceElevated)
 
-        static let textPrimary = Color(light: 0x3A2410, dark: 0xF7EDE4, monoLight: 0x1A1A1A, monoDark: 0xF2F2F2)
-        static let textSecondary = Color(light: 0x8A6A4F, dark: 0xBFA892, monoLight: 0x6B6B6B, monoDark: 0xA8A8A8)
+        static let textPrimary = Color(token: .textPrimary)
+        static let textSecondary = Color(token: .textSecondary)
         /// 補助的な飾り（区切りの記号、無効状態）。本文には使わない。
-        static let textTertiary = Color(light: 0xB59A82, dark: 0x8C7663, monoLight: 0xA3A3A3, monoDark: 0x6E6E6E)
+        static let textTertiary = Color(token: .textTertiary)
 
-        static let separator = Color(light: 0xF0E2D4, dark: 0x3A3027, monoLight: 0xE3E3E3, monoDark: 0x333333)
+        static let separator = Color(token: .separator)
 
         /// 期限切れ・削除
         static let danger = Color(light: 0xD23B2E, dark: 0xFF6B5E)
@@ -167,7 +157,7 @@ extension DS {
         /// 赤い塗り（バッジなど）の上に載せる文字
         static let onDanger = Color.white
         /// 進み具合 100% の輪
-        static let success = Color(light: 0x3FA34D, dark: 0x5CC46A, monoLight: 0x1A1A1A, monoDark: 0xF2F2F2)
+        static let success = Color(token: .success)
 
         /// モノクロのテーマの色見本（白と黒。ライト／ダークで変えない）
         static let monoSwatchLight = Color.white
@@ -178,15 +168,8 @@ extension DS {
             UIColor.black.withAlphaComponent(traits.userInterfaceStyle == .dark ? 0.5 : 0.25)
         })
 
-        /// 影の色（ダークでは黒を濃くする）
-        static let shadow = Color(uiColor: UIColor { traits in
-            if traits.userInterfaceStyle == .dark {
-                return UIColor.black.withAlphaComponent(0.45)
-            }
-            return traits.dsMonochrome
-                ? UIColor.black.withAlphaComponent(0.08)
-                : UIColor(red: 0.36, green: 0.20, blue: 0.06, alpha: 0.10)
-        })
+        /// 影の色
+        static let shadow = Color(token: .shadow)
     }
 }
 
@@ -296,6 +279,8 @@ extension DS {
         static let l: CGFloat = 18
         /// シート・大きなカード
         static let xl: CGFloat = 26
+        /// 泡のテーマのタスクカード（1 行ならカプセルになる丸さ）
+        static let bubbleCard: CGFloat = 30
         // ボタン・チップは Capsule() を使う
     }
 
@@ -304,6 +289,8 @@ extension DS {
         static let minTapTarget: CGFloat = 44
         /// チェックの丸
         static let checkbox: CGFloat = 26
+        /// 泡のテーマのチェック（シャボン玉）
+        static let bubbleCheckbox: CGFloat = 30
         /// サイドバーのグループアイコン
         static let groupIcon: CGFloat = 44
         /// 編集中のサイドバーの小さなグループアイコン

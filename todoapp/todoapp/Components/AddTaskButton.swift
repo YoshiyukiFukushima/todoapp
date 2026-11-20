@@ -12,6 +12,7 @@ struct AddTaskButton: View {
     let action: () -> Void
 
     @Environment(\.dsAccent) private var accent
+    @Environment(\.dsStyle) private var style
 
     var body: some View {
         Button(action: action) {
@@ -19,11 +20,21 @@ struct AddTaskButton: View {
                 .font(DS.Typography.iconLarge)
                 .foregroundStyle(accent.onFill)
                 .frame(width: DS.Size.fab, height: DS.Size.fab)
-                .background(accent.fill, in: Circle())
-                .dsShadow(.floating)
+                .background { face }
         }
         .padding(DS.Spacing.l)
         .disabled(!isEnabled)
         .opacity(isEnabled ? 1 : DS.Opacity.disabled)
+        .accessibilityLabel("タスクを追加")
+    }
+
+    @ViewBuilder
+    private var face: some View {
+        switch style {
+        case .standard:
+            Circle().fill(accent.fill).dsShadow(.floating)
+        case .bubble:
+            BubbleSphere(isFilled: true).dsShadow(.floating)
+        }
     }
 }
