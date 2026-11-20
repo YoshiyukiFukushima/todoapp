@@ -6,8 +6,16 @@
 import SwiftUI
 import SwiftData
 
+/// 一覧に出す範囲
+enum TaskListScope {
+    /// 1 つのグループ（サブグループの見出しつき）
+    case group(TodoGroup)
+    /// すべてのグループ（見出しなしの 1 本の一覧。行にグループ名を出す）
+    case allGroups([TodoTask])
+}
+
 struct TaskListView: View {
-    let group: TodoGroup
+    let scope: TaskListScope
     let filter: TaskFilter
     let taskViewModel: TaskViewModel
     let groupViewModel: GroupViewModel
@@ -28,14 +36,31 @@ struct TaskListView: View {
     @State private var subgroupPendingDelete: SubGroup?
     @State private var showDeleteSubgroup = false
 
+    /// 1 つのグループを見ているときだけ、そのグループ
+    private var group: TodoGroup? {
+        if case .group(let group) = scope { return group }
+        return nil
+    }
+
+    private var isAllGroups: Bool { group == nil }
+
+    /// 範囲の中の全タスク
+    private var scopeTasks: [TodoTask] {
+        switch scope {
+        case .group(let group): group.tasks
+        case .allGroups(let tasks): tasks
+        }
+    }
+
     var body: some View {
         let query = TaskQuery()
         // 日・週・月・全て：未完了と完了を 1 つの一覧に（完了しても位置は変わらない）
-        let ungrouped = query.listedTasks(from: group.tasks.filter { $0.subgroup == nil }, in: filter)
-        let subgroups = group.subgroups.sorted(by: { $0.order < $1.order })
+        // すべてのグループでは、サブグループに入っているものも含めて 1 本にする
+        let ungrouped = query.listedTasks(from: isAllGroups ? scopeTasks : scopeTasks.filter { $0.subgroup == nil }, in: filter)
+        let subgroups = group?.subgroups.sorted(by: { $0.order < $1.order }) ?? []
         let hasSubgroupTasks = subgroups.contains { !query.listedTasks(from: $0.tasks, in: filter).isEmpty }
         // 履歴：日付ごとの見出しつき
-        let completed = filter == .history ? query.completedGroups(from: group.tasks, in: .history) : []
+        let completed = filter == .history ? query.completedGroups(from: scopeTasks, in: .history) : []
 
         Group {
             if ungrouped.isEmpty && !hasSubgroupTasks && completed.isEmpty {
@@ -53,7 +78,7 @@ struct TaskListView: View {
                         }
                     }
 
-                    if filter != .history {
+                    if filter != .history, !isAllGroups {
                         ForEach(subgroups) { subgroup in
                             subgroupSection(subgroup, query: query)
                         }
@@ -84,7 +109,7 @@ struct TaskListView: View {
             Button("追加") { addSubgroup() }
             Button("キャンセル", role: .cancel) {}
         } message: {
-            Text("「\(group.name)」の中を見出しで分けられます。")
+            Text("「\(group?.name ?? "")」の中を見出しで分けられます。")
         }
         .alert("サブグループの名前を変更", isPresented: $showRenameSubgroup) {
             TextField("名前", text: $renameText)
@@ -170,7 +195,7 @@ struct TaskListView: View {
 
     private func addSubgroup() {
         let name = newSubgroupName.trimmingCharacters(in: .whitespacesAndNewlines)
-        guard !name.isEmpty else { return }
+        guard !name.isEmpty, let group else { return }
         groupViewModel.addSubGroup(name: name, to: group, order: (group.subgroups.map(\.order).max() ?? -1) + 1)
     }
 
@@ -208,7 +233,7 @@ struct TaskListView: View {
         taskViewModel.toggleComplete(task)
         // このタブのタスクが全部終わったら、ご褒美の演出
         guard willComplete, style.hasCompletionEffects, themeManager.animationsEnabled, !reduceMotion,
-              let progress = TaskQuery().progress(in: group.tasks, for: filter),
+              let progress = TaskQuery().progress(in: scopeTasks, for: filter),
               progress.total > 0, progress.done == progress.total else { return }
         bubbleEffects?.celebrate()
     }
@@ -227,6 +252,7 @@ struct TaskListView: View {
     private func row(for task: TodoTask) -> some View {
         TaskRowView(
             task: task,
+            showsGroup: isAllGroups,
             animationsEnabled: themeManager.animationsEnabled,
             fadeOutOnComplete: themeManager.fadeOutOnComplete,
             onTap: { onSelectTask(task) },

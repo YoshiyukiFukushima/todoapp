@@ -7,6 +7,8 @@ import SwiftUI
 
 struct TaskRowView: View {
     let task: TodoTask
+    /// どのグループのタスクかを出す（すべてのグループを見ているとき）
+    var showsGroup = false
     let animationsEnabled: Bool
     let fadeOutOnComplete: Bool
     let onTap: () -> Void
@@ -27,7 +29,7 @@ struct TaskRowView: View {
             .padding(.top, DS.Spacing.xs)
 
             Button(action: onTap) {
-                TaskRowContent(task: task)
+                TaskRowContent(task: task, showsGroup: showsGroup)
                     .padding(.vertical, DS.Spacing.m)
                     .padding(.trailing, DS.Spacing.l)
                     .frame(maxWidth: .infinity, alignment: .leading)
@@ -50,6 +52,14 @@ struct TaskRowView: View {
 /// タイトル・期限と繰り返し・メモ
 private struct TaskRowContent: View {
     let task: TodoTask
+    let showsGroup: Bool
+
+    /// 行に出すグループ（アイコンと名前）
+    private var groupMeta: (symbol: String, name: String)? {
+        guard showsGroup, let group = task.group else { return nil }
+        if case .symbol(let symbol) = group.glyph { return (symbol, group.name) }
+        return ("folder", group.name)
+    }
 
     private var memoText: String {
         task.memoDisplayMode == 1 ? String(task.memo.prefix(DS.Layout.memoPreviewLength)) : task.memo
@@ -67,8 +77,13 @@ private struct TaskRowContent: View {
                 .foregroundStyle(task.isCompleted ? DS.Colors.textSecondary : DS.Colors.textPrimary)
                 .multilineTextAlignment(.leading)
 
-            if dueLabel != nil || task.isRepeating {
+            if groupMeta != nil || dueLabel != nil || task.isRepeating {
                 HStack(spacing: DS.Spacing.s) {
+                    if let groupMeta {
+                        MetaItem(symbol: groupMeta.symbol, text: groupMeta.name)
+                            .foregroundStyle(DS.Colors.textSecondary)
+                            .lineLimit(1)
+                    }
                     if let dueLabel {
                         MetaItem(symbol: dueLabel.isOverdue ? "exclamationmark.circle.fill" : "calendar", text: dueLabel.text)
                             .foregroundStyle(dueLabel.isOverdue ? DS.Colors.danger : DS.Colors.textSecondary)

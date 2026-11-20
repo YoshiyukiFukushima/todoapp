@@ -17,6 +17,8 @@ struct ContentView: View {
     @Query private var allTasks: [TodoTask]
 
     @State private var selectedGroupID: UUID?
+    /// 「すべてのグループ」を見ているか
+    @State private var isAllGroupsSelected = false
     @State private var selectedFilter: TaskFilter = .day
     @State private var isSidebarOpen = false
     @State private var showAddTask = false
@@ -34,11 +36,14 @@ struct ContentView: View {
 
     private var theme: ColorTheme { themeManager.selectedTheme }
 
+    /// 直前に開いていたグループ（「すべてのグループ」を見ている間も覚えておき、＋の追加先にする）
     private var selectedGroup: TodoGroup? {
         groups.first(where: { $0.id == selectedGroupID }) ?? groups.first
     }
 
-    private var tasksInSelectedGroup: [TodoTask] {
+    /// 一覧に出すタスク（すべてのグループなら全部）
+    private var tasksInScope: [TodoTask] {
+        if isAllGroupsSelected { return allTasks.filter { $0.group != nil } }
         guard let selectedGroup else { return [] }
         return allTasks.filter { $0.group?.id == selectedGroup.id }
     }
@@ -48,8 +53,10 @@ struct ContentView: View {
             HStack(spacing: 0) {
                 GroupRail(
                     groups: groups,
-                    selectedGroupID: selectedGroup?.id,
+                    selectedGroupID: isAllGroupsSelected ? nil : selectedGroup?.id,
+                    isAllSelected: isAllGroupsSelected,
                     onToggle: { setSidebar(open: true) },
+                    onSelectAll: selectAll,
                     onSelect: select
                 )
                 .frame(width: DS.Size.sidebarCollapsed)
@@ -68,8 +75,10 @@ struct ContentView: View {
 
                 GroupSidebarPanel(
                     groups: groups,
-                    selectedGroupID: selectedGroup?.id,
+                    selectedGroupID: isAllGroupsSelected ? nil : selectedGroup?.id,
+                    isAllSelected: isAllGroupsSelected,
                     onClose: { setSidebar(open: false) },
+                    onSelectAll: selectAll,
                     onSelect: select,
                     onAdd: { showAddGroup = true },
                     onEdit: { editingGroup = $0 },
@@ -143,19 +152,19 @@ struct ContentView: View {
             VStack(spacing: 0) {
                 VStack(spacing: DS.Spacing.m) {
                     MainHeaderView(
-                        groupName: group.name,
+                        groupName: isAllGroupsSelected ? "すべてのグループ" : group.name,
                         filter: selectedFilter,
-                        tasks: tasksInSelectedGroup,
+                        tasks: tasksInScope,
                         onSettings: { showSettings = true }
                     )
-                    FilterTabs(selection: $selectedFilter, tasks: tasksInSelectedGroup)
+                    FilterTabs(selection: $selectedFilter, tasks: tasksInScope)
                 }
                 .padding(.horizontal, DS.Spacing.screenMargin)
                 .padding(.top, DS.Spacing.s)
                 .padding(.bottom, DS.Spacing.s)
 
                 TaskListView(
-                    group: group,
+                    scope: isAllGroupsSelected ? .allGroups(tasksInScope) : .group(group),
                     filter: selectedFilter,
                     taskViewModel: taskViewModel,
                     groupViewModel: groupViewModel,
@@ -186,6 +195,12 @@ struct ContentView: View {
 
     private func select(_ group: TodoGroup) {
         selectedGroupID = group.id
+        isAllGroupsSelected = false
+        if isSidebarOpen { setSidebar(open: false) }
+    }
+
+    private func selectAll() {
+        isAllGroupsSelected = true
         if isSidebarOpen { setSidebar(open: false) }
     }
 

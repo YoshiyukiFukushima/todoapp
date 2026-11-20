@@ -66,3 +66,26 @@ struct CountBadge: View {
         }
     }
 }
+
+/// 「すべてのグループ」の丸いアイコン（テーマの差し色）
+struct AllGroupsAvatar: View {
+    let isSelected: Bool
+
+    @Environment(\.dsAccent) private var accent
+
+    var body: some View {
+        ZStack {
+            Circle()
+                .fill(isSelected ? accent.fill : accent.soft)
+            Image(systemName: "square.stack.3d.up.fill")
+                .font(DS.Typography.icon)
+                .foregroundStyle(isSelected ? accent.onFill : accent.text)
+        }
+        .frame(width: DS.Size.groupIcon, height: DS.Size.groupIcon)
+        .padding(DS.Spacing.xs)
+        .overlay {
+            Circle()
+                .strokeBorder(isSelected ? accent.fill : .clear, lineWidth: DS.Stroke.regular)
+        }
+    }
+}
