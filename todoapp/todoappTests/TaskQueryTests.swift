@@ -311,6 +311,37 @@ struct TaskQueryTests {
         }
     }
 
+    // MARK: タスクを別のグループへ移す
+
+    @Test func movingTaskToAnotherGroupDropsForeignSubgroup() throws {
+        let context = container.mainContext
+        let home = TodoGroup(name: "ホーム", icon: "house.fill", colorHex: "mikan", order: 0)
+        let work = TodoGroup(name: "仕事", icon: "briefcase.fill", colorHex: "sky", order: 1)
+        context.insert(home)
+        context.insert(work)
+        let groupViewModel = GroupViewModel(modelContext: context)
+        groupViewModel.addSubGroup(name: "掃除", to: home, order: 0)
+        groupViewModel.addSubGroup(name: "開発", to: work, order: 0)
+        let subgroups = try context.fetch(FetchDescriptor<SubGroup>())
+        let cleaning = try #require(subgroups.first { $0.name == "掃除" })
+        let dev = try #require(subgroups.first { $0.name == "開発" })
+        let task = TodoTask(title: "メールを返す", group: home, subgroup: cleaning)
+        context.insert(task)
+        try context.save()
+
+        let taskViewModel = TaskViewModel(modelContext: context)
+        // 移した先のグループのものではないサブグループは外れる
+        taskViewModel.updateTask(task, title: task.title, memo: "", memoDisplayMode: 0, dueDate: nil,
+                                 repeatInterval: .none, group: work, subgroup: cleaning)
+        #expect(task.group?.name == "仕事")
+        #expect(task.subgroup == nil)
+
+        // 移した先のサブグループには入れられる
+        taskViewModel.updateTask(task, title: task.title, memo: "", memoDisplayMode: 0, dueDate: nil,
+                                 repeatInterval: .none, group: work, subgroup: dev)
+        #expect(task.subgroup?.name == "開発")
+    }
+
     // MARK: 期限のチップ
 
     @Test func dueChoiceFromExistingDate() {
