@@ -32,8 +32,13 @@ private struct SidebarToggleButton: View {
 struct GroupRail: View {
     let groups: [TodoGroup]
     let selectedGroupID: UUID?
+    /// 「すべてのグループ」を選んでいるか
+    let isAllSelected: Bool
     let onToggle: () -> Void
+    let onSelectAll: () -> Void
     let onSelect: (TodoGroup) -> Void
+
+    private var totalIncomplete: Int { groups.reduce(0) { $0 + $1.incompleteTaskCount } }
 
     var body: some View {
         VStack(spacing: DS.Spacing.s) {
@@ -41,6 +46,17 @@ struct GroupRail: View {
 
             ScrollView {
                 VStack(spacing: DS.Spacing.m) {
+                    Button(action: onSelectAll) {
+                        AllGroupsAvatar(isSelected: isAllSelected)
+                            .overlay(alignment: .topTrailing) {
+                                CountBadge(count: totalIncomplete)
+                            }
+                    }
+                    .buttonStyle(.plain)
+                    .accessibilityLabel("すべてのグループ")
+                    .accessibilityValue(totalIncomplete > 0 ? "未完了\(totalIncomplete)件" : "")
+                    .accessibilityAddTraits(isAllSelected ? [.isSelected] : [])
+
                     ForEach(groups) { group in
                         let isSelected = group.id == selectedGroupID
                         Button { onSelect(group) } label: {
@@ -70,7 +86,9 @@ struct GroupRail: View {
 struct GroupSidebarPanel: View {
     let groups: [TodoGroup]
     let selectedGroupID: UUID?
+    let isAllSelected: Bool
     let onClose: () -> Void
+    let onSelectAll: () -> Void
     let onSelect: (TodoGroup) -> Void
     let onAdd: () -> Void
     let onEdit: (TodoGroup) -> Void
@@ -108,6 +126,14 @@ struct GroupSidebarPanel: View {
             }
 
             List {
+                // 「すべてのグループ」は並べ替え・編集の対象にしないので、編集中は出さない
+                if !isEditing {
+                    allGroupsRow
+                        .listRowInsets(rowInsets)
+                        .listRowBackground(Color.clear)
+                        .listRowSeparator(.hidden)
+                }
+
                 ForEach(groups) { group in
                     row(for: group)
                 }
@@ -139,6 +165,39 @@ struct GroupSidebarPanel: View {
         .dsShadow(.floating)
     }
 
+    private var rowInsets: EdgeInsets {
+        EdgeInsets(top: DS.Spacing.xs + DS.Spacing.xxs, leading: DS.Spacing.s, bottom: DS.Spacing.xs + DS.Spacing.xxs, trailing: DS.Spacing.s)
+    }
+
+    private var allGroupsRow: some View {
+        let count = groups.reduce(0) { $0 + $1.incompleteTaskCount }
+        return Button(action: onSelectAll) {
+            HStack(spacing: DS.Spacing.s) {
+                AllGroupsAvatar(isSelected: isAllSelected)
+                Text("すべてのグループ")
+                    .font(isAllSelected ? DS.Typography.taskTitle : DS.Typography.body)
+                    .foregroundStyle(DS.Colors.textPrimary)
+                    .lineLimit(1)
+                Spacer(minLength: DS.Spacing.s)
+                if count > 0 {
+                    Text("\(count)")
+                        .font(DS.Typography.counter)
+                        .foregroundStyle(DS.Colors.textSecondary)
+                }
+            }
+            .padding(.trailing, DS.Spacing.m)
+            .background(
+                RoundedRectangle(cornerRadius: DS.Radius.xl)
+                    .fill(isAllSelected ? DS.Colors.surface : .clear)
+            )
+            .contentShape(Rectangle())
+        }
+        .buttonStyle(.plain)
+        .accessibilityLabel("すべてのグループ")
+        .accessibilityValue(count > 0 ? "未完了\(count)件" : "")
+        .accessibilityAddTraits(isAllSelected ? [.isSelected] : [])
+    }
+
     @ViewBuilder
     private func row(for group: TodoGroup) -> some View {
         Group {
@@ -148,7 +207,7 @@ struct GroupSidebarPanel: View {
                 normalRow(for: group)
             }
         }
-        .listRowInsets(EdgeInsets(top: DS.Spacing.xs + DS.Spacing.xxs, leading: DS.Spacing.s, bottom: DS.Spacing.xs + DS.Spacing.xxs, trailing: DS.Spacing.s))
+        .listRowInsets(rowInsets)
         .listRowBackground(Color.clear)
         .listRowSeparator(.hidden)
     }
