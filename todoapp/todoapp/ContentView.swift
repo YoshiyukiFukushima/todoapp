@@ -7,10 +7,12 @@
 
 import SwiftUI
 import SwiftData
+import WidgetKit
 
 struct ContentView: View {
     @Environment(\.modelContext) private var modelContext
     @Environment(\.accessibilityReduceMotion) private var reduceMotion
+    @Environment(\.scenePhase) private var scenePhase
     @EnvironmentObject private var themeManager: ThemeManager
 
     @Query(sort: \TodoGroup.order) private var groups: [TodoGroup]
@@ -42,6 +44,12 @@ struct ContentView: View {
     }
 
     /// 一覧に出すタスク（すべてのグループなら全部）
+    /// ウィジェットに関わる中身が変わったかを見る印（変わったらウィジェットを描き直す）
+    private var widgetSignature: [String] {
+        groups.map { "\($0.id)\($0.name)\($0.icon)\($0.subgroups.map(\.name))" }
+            + allTasks.map { "\($0.id)\($0.isCompleted)\($0.updatedDate.timeIntervalSince1970)\($0.group?.id.uuidString ?? "")" }
+    }
+
     private var tasksInScope: [TodoTask] {
         if isAllGroupsSelected { return allTasks.filter { $0.group != nil } }
         guard let selectedGroup else { return [] }
@@ -136,6 +144,13 @@ struct ContentView: View {
         .dsRoot(theme: theme)
         .dsApplyThemeToWindows(theme)
         .onAppear(perform: seedDefaultGroupIfNeeded)
+        // ウィジェットからアプリを開いたとき（docs/widgets.md 4.4）
+        .onOpenURL(perform: open)
+        // アプリで変えたら、ウィジェットもすぐ描き直す（docs/widgets.md 4.3）
+        .onChange(of: widgetSignature) { _, _ in reloadWidgets() }
+        .onChange(of: scenePhase) { _, phase in
+            if phase == .background { reloadWidgets() }
+        }
         // 「先頭のグループ」を暗黙に選ぶと並べ替えで選択が変わるため、選択を明示的に持つ
         .onChange(of: groups.map(\.id), initial: true) { _, ids in
             if selectedGroupID == nil || !ids.contains(selectedGroupID!) {
@@ -197,6 +212,27 @@ struct ContentView: View {
         selectedGroupID = group.id
         isAllGroupsSelected = false
         if isSidebarOpen { setSidebar(open: false) }
+    }
+
+    private func open(_ url: URL) {
+        guard let link = AppLink(url: url) else { return }
+        if isSidebarOpen { setSidebar(open: false) }
+        switch link {
+        case .allGroups:
+            selectAll()
+        case .group(let id):
+            if let group = groups.first(where: { $0.id == id }) { select(group) }
+        case .task(let id):
+            guard let task = allTasks.first(where: { $0.id == id }) else { return }
+            if let group = task.group { select(group) }
+            selectedTask = task
+        }
+    }
+
+    private func reloadWidgets() {
+        // ウィジェットは保存されたデータを読むので、先に保存する
+        try? modelContext.save()
+        WidgetCenter.shared.reloadAllTimelines()
     }
 
     private func selectAll() {

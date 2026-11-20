@@ -11,15 +11,9 @@ struct todoappApp: App {
     @StateObject private var themeManager = ThemeManager()
 
     var sharedModelContainer: ModelContainer = {
-        let schema = Schema([
-            TodoGroup.self,
-            SubGroup.self,
-            TodoTask.self,
-        ])
-        let modelConfiguration = ModelConfiguration(schema: schema, isStoredInMemoryOnly: false)
-
         do {
-            return try ModelContainer(for: schema, configurations: [modelConfiguration])
+            // ウィジェットと共有する場所（App Group）に置く。以前のデータは初回だけ写す
+            return try SharedStore.makeContainer(migrateLegacyStore: true)
         } catch {
             fatalError("Could not create ModelContainer: \(error)")
         }

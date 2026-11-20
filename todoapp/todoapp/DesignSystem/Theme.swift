@@ -123,21 +123,3 @@ extension EnvironmentValues {
     /// モノクロのテーマかどうか（グループの色をグレーにする）
     var dsMonochrome: Bool { dsTheme.isMonochrome }
 }
-
-// MARK: - ウィンドウ全体に反映
-
-extension View {
-    /// テーマをウィンドウのトレイトに書く。
-    /// シートは別の画面として出るため、環境値だけでは中の色まで届かない。ウィンドウに書けばシートも含めて全部に効く。
-    func dsApplyThemeToWindows(_ theme: ColorTheme) -> some View {
-        onChange(of: theme, initial: true) { _, newValue in
-            for scene in UIApplication.shared.connectedScenes {
-                guard let windowScene = scene as? UIWindowScene else { continue }
-                for window in windowScene.windows {
-                    window.traitOverrides.dsTheme = newValue
-                    window.overrideUserInterfaceStyle = newValue.fixedInterfaceStyle ?? .unspecified
-                }
-            }
-        }
-    }
-}

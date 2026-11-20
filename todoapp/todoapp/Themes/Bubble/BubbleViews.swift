@@ -15,6 +15,8 @@ struct BubbleGlass<S: InsettableShape>: View {
         case bar
         /// 左上の小さな光（丸いボタン）
         case spot
+        /// 光なし（ウィジェットの細い行など、文字に重なるとき）
+        case none
     }
 
     let shape: S
@@ -57,6 +59,8 @@ struct BubbleGlass<S: InsettableShape>: View {
                     .offset(x: proxy.size.width * 0.16, y: proxy.size.height * 0.14)
             }
             .allowsHitTesting(false)
+        case .none:
+            EmptyView()
         }
     }
 }
