@@ -6,6 +6,7 @@
 //
 
 import SwiftUI
+import SwiftData
 
 struct TaskEditSheet: View {
     let group: TodoGroup?
@@ -26,6 +27,7 @@ struct TaskEditSheet: View {
     @State private var customDate: Date = Date()
     @State private var showDatePicker = false
     @State private var repeatInterval: RepeatInterval = .none
+    @State private var selectedGroupID: UUID?
     @State private var selectedSubgroupID: UUID?
     @State private var isExpanded = false
     @State private var detent: PresentationDetent = .medium
@@ -33,10 +35,17 @@ struct TaskEditSheet: View {
     @State private var originalDueDate: Date?
     @FocusState private var titleFocused: Bool
 
+    @Query(sort: \TodoGroup.order) private var groups: [TodoGroup]
+
     private var isNew: Bool { task == nil }
 
+    /// 保存先のグループ（シートの中で別のグループに移せる）
+    private var selectedGroup: TodoGroup? {
+        groups.first { $0.id == selectedGroupID } ?? task?.group ?? group
+    }
+
     private var subgroups: [SubGroup] {
-        (task?.group ?? group)?.subgroups.sorted(by: { $0.order < $1.order }) ?? []
+        selectedGroup?.subgroups.sorted(by: { $0.order < $1.order }) ?? []
     }
 
     private var selectedSubgroup: SubGroup? {
@@ -152,39 +161,88 @@ struct TaskEditSheet: View {
         }
     }
 
-    // MARK: - 繰り返し・サブグループ
+    // MARK: - グループ・繰り返し・サブグループ
 
     private var optionsSection: some View {
-        HStack(spacing: DS.Spacing.s) {
+        // 文字が大きいときも切れないよう、横にスクロールできるようにする
+        ScrollView(.horizontal) {
+            HStack(spacing: DS.Spacing.s) {
+                groupMenu
+                repeatMenu
+                subgroupMenu
+            }
+        }
+        .scrollIndicators(.hidden)
+        .scrollClipDisabled()
+    }
+
+    /// グループを選ぶ（グループが 2 つ以上あるときだけ）。変えると、サブグループは「なし」に戻る
+    @ViewBuilder
+    private var groupMenu: some View {
+        if groups.count > 1, let selectedGroup {
             Menu {
-                Picker("繰り返し", selection: $repeatInterval) {
-                    ForEach(RepeatInterval.allCases) { interval in
-                        Text(interval.displayName).tag(interval)
+                Picker("グループ", selection: groupSelection) {
+                    ForEach(groups) { group in
+                        Label(group.name, systemImage: symbolName(for: group)).tag(Optional(group.id))
                     }
                 }
             } label: {
-                ChipLabel(title: repeatInterval.displayName, systemImage: "repeat",
-                          isSelected: repeatInterval != .none)
+                ChipLabel(title: selectedGroup.name, systemImage: symbolName(for: selectedGroup), isSelected: false)
             }
-            .accessibilityLabel("繰り返し")
-            .accessibilityValue(repeatInterval.displayName)
+            .accessibilityLabel("グループ")
+            .accessibilityValue(selectedGroup.name)
+        }
+    }
 
-            if !subgroups.isEmpty {
-                Menu {
-                    Picker("サブグループ", selection: $selectedSubgroupID) {
-                        Text("サブグループなし").tag(UUID?.none)
-                        ForEach(subgroups) { subgroup in
-                            Text(subgroup.name).tag(Optional(subgroup.id))
-                        }
-                    }
-                } label: {
-                    ChipLabel(title: selectedSubgroup?.name ?? "サブグループなし",
-                              systemImage: "list.bullet.indent",
-                              isSelected: selectedSubgroup != nil)
-                }
-                .accessibilityLabel("サブグループ")
-                .accessibilityValue(selectedSubgroup?.name ?? "なし")
+    private var groupSelection: Binding<UUID?> {
+        Binding(
+            get: { selectedGroup?.id },
+            set: { newID in
+                guard newID != selectedGroup?.id else { return }
+                selectedGroupID = newID
+                selectedSubgroupID = nil
             }
+        )
+    }
+
+    /// グループのアイコン（1 文字目のグループはフォルダで表す）
+    private func symbolName(for group: TodoGroup) -> String {
+        if case .symbol(let name) = group.glyph { return name }
+        return "folder"
+    }
+
+    private var repeatMenu: some View {
+        Menu {
+            Picker("繰り返し", selection: $repeatInterval) {
+                ForEach(RepeatInterval.allCases) { interval in
+                    Text(interval.displayName).tag(interval)
+                }
+            }
+        } label: {
+            ChipLabel(title: repeatInterval.displayName, systemImage: "repeat",
+                      isSelected: repeatInterval != .none)
+        }
+        .accessibilityLabel("繰り返し")
+        .accessibilityValue(repeatInterval.displayName)
+    }
+
+    @ViewBuilder
+    private var subgroupMenu: some View {
+        if !subgroups.isEmpty {
+            Menu {
+                Picker("サブグループ", selection: $selectedSubgroupID) {
+                    Text("サブグループなし").tag(UUID?.none)
+                    ForEach(subgroups) { subgroup in
+                        Text(subgroup.name).tag(Optional(subgroup.id))
+                    }
+                }
+            } label: {
+                ChipLabel(title: selectedSubgroup?.name ?? "サブグループなし",
+                          systemImage: "list.bullet.indent",
+                          isSelected: selectedSubgroup != nil)
+            }
+            .accessibilityLabel("サブグループ")
+            .accessibilityValue(selectedSubgroup?.name ?? "なし")
         }
     }
 
@@ -269,12 +327,14 @@ struct TaskEditSheet: View {
             originalDueDate = task.dueDate
             customDate = task.dueDate ?? Date()
             repeatInterval = task.repeatIntervalEnum
+            selectedGroupID = task.group?.id
             selectedSubgroupID = task.subgroup?.id
             isExpanded = true
             detent = .large
         } else {
             dueChoice = DueChoice(date: defaultDueDate)
             customDate = defaultDueDate ?? Date()
+            selectedGroupID = group?.id
             selectedSubgroupID = subgroup?.id
             titleFocused = true
         }
@@ -294,6 +354,7 @@ struct TaskEditSheet: View {
                 memoDisplayMode: memoDisplayMode,
                 dueDate: finalDueDate,
                 repeatInterval: repeatInterval,
+                group: selectedGroup,
                 subgroup: selectedSubgroup
             )
         } else {
@@ -303,7 +364,7 @@ struct TaskEditSheet: View {
                 memoDisplayMode: memoDisplayMode,
                 dueDate: finalDueDate,
                 repeatInterval: repeatInterval,
-                group: group,
+                group: selectedGroup,
                 subgroup: selectedSubgroup
             )
         }

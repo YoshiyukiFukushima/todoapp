@@ -63,6 +63,7 @@ struct TaskViewModel {
         memoDisplayMode: Int,
         dueDate: Date?,
         repeatInterval: RepeatInterval,
+        group: TodoGroup?,
         subgroup: SubGroup?
     ) {
         task.title = title
@@ -71,7 +72,9 @@ struct TaskViewModel {
         task.dueDate = dueDate
         task.isRepeating = repeatInterval != .none
         task.repeatInterval = repeatInterval == .none ? nil : repeatInterval.rawValue
-        task.subgroup = subgroup
+        task.group = group
+        // サブグループは移したグループのものだけ（別のグループのサブグループには入れない）
+        task.subgroup = subgroup?.group?.id == group?.id ? subgroup : nil
         task.updatedDate = Date()
     }
 }
