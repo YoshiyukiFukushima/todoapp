@@ -35,6 +35,12 @@ nonisolated enum ColorTheme: String, CaseIterable, Identifiable, Sendable {
     case candle
     /// 星座。終えると星が灯り、全部終えると星座になる。いつも暗い
     case constellation
+    /// ねこ。チェックするとねこの手が肉球のスタンプを押す。いつも暗い
+    case cat
+    /// 花火。夜空で、チェックすると花火が開く。いつも暗い
+    case fireworks
+    /// ひよこ。チェックすると卵からひよこが生まれる。いつも暗い
+    case chick
 
     var id: String { rawValue }
 
@@ -52,6 +58,9 @@ nonisolated enum ColorTheme: String, CaseIterable, Identifiable, Sendable {
         case .stamp: .stamp
         case .candle: .candle
         case .constellation: .constellation
+        case .cat: .cat
+        case .fireworks: .fireworks
+        case .chick: .chick
         default: .warm
         }
     }
@@ -67,6 +76,9 @@ nonisolated enum ColorTheme: String, CaseIterable, Identifiable, Sendable {
         case .stamp: .stamp
         case .candle: .candle
         case .constellation: .constellation
+        case .cat: .cat
+        case .fireworks: .fireworks
+        case .chick: .chick
         default: .standard
         }
     }
@@ -75,7 +87,7 @@ nonisolated enum ColorTheme: String, CaseIterable, Identifiable, Sendable {
     var fixedInterfaceStyle: UIUserInterfaceStyle? {
         switch style {
         case .standard: nil
-        case .bubble, .flower, .water, .candle, .constellation: .dark
+        case .bubble, .flower, .water, .candle, .constellation, .cat, .fireworks, .chick: .dark
         case .stamp: .light
         }
     }
@@ -96,6 +108,9 @@ extension ColorTheme {
         case .stamp: "判子"
         case .candle: "ろうそく"
         case .constellation: "星座"
+        case .cat: "ねこ"
+        case .fireworks: "花火"
+        case .chick: "ひよこ"
         default: accent.displayName
         }
     }
@@ -120,6 +135,9 @@ extension ColorTheme {
         case .stamp: .tomato
         case .candle: .mikan
         case .constellation: .grape
+        case .cat: .berry
+        case .fireworks: .sky
+        case .chick: .mikan
         }
     }
 }

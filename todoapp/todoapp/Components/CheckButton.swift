@@ -12,6 +12,10 @@
 //  - candle: 火が横に吹かれたように消える（残り火と煙は CandleEffects が描く）
 //  - constellation: 星が灯り、光が夜空の星へ飛ぶ（StarEffects が描く）
 //  - water: しずくが落ちて当たると水玉に変わり、横につぶれてからぷるぷる揺れて戻る（しずくと波紋は WaterEffects が描く）
+//  - cat: ねこの手が下から伸びてきて、気まぐれな向き・ずれで肉球のスタンプを押す（ねこの手は CatEffects が描く）
+//  - fireworks: 玉がきゅっと縮んで、光の筋が放射状に開く（花火は FireworksEffects が描く）
+//  - chick: 卵が揺れて割れ、ひよこが生まれる（殻のかけらは ChickEffects が描く）
+//  ねこ・花火・ひよこは、完了しても行の中でチェックだけは薄くしない（TaskRowView）
 //
 
 import SwiftUI
@@ -20,6 +24,10 @@ struct CheckButton: View {
     let isCompleted: Bool
     let taskTitle: String
     let animationsEnabled: Bool
+    /// タスクごとに決まったでたらめの種（肉球の向き・花火の色）
+    var seed: UInt64 = 0
+    /// タスクカードの画面上の位置（ねこの手がカードの外に出ないようにする）
+    var cardFrame: CGRect = .zero
     let action: () -> Void
 
     @Environment(\.dsStyle) private var style
@@ -31,6 +39,9 @@ struct CheckButton: View {
     @Environment(StarEffects.self) private var starEffects: StarEffects?
     /// 判子の傾き。押すたびに少し変わる（押すまではタスク名から決まった傾き）
     @State private var stampTilt: Double?
+    @Environment(CatEffects.self) private var catEffects: CatEffects?
+    @Environment(FireworksEffects.self) private var fireworksEffects: FireworksEffects?
+    @Environment(ChickEffects.self) private var chickEffects: ChickEffects?
     @State private var bounceTrigger = 0
     @State private var globalFrame: CGRect = .zero
     /// 泡がはじける・しずくが当たるまでは、未完了の見た目のまま見せる
@@ -74,11 +85,18 @@ struct CheckButton: View {
                     try? await Task.sleep(for: .seconds(DS.Water.fallDuration))
                     isPopping = false
                 }
+            case .cat:
+                catEffects?.press(at: center, checkSize: globalFrame.width, stamp: PawStamp(seed: seed), card: cardFrame)
+            case .fireworks:
+                fireworksEffects?.burst(at: center, radius: globalFrame.width / 2, color: FireworkColor.pick(seed: seed))
+            case .chick:
+                chickEffects?.hatch(at: center, size: globalFrame.width)
             }
         } label: {
             CheckMarkFace(style: style, isCompleted: isCompleted && !isPopping,
                           isAnimated: animationsEnabled && !reduceMotion,
-                          tilt: stampTilt ?? StampMark.stableTilt(for: taskTitle), seed: seed)
+                          tilt: stampTilt ?? StampMark.stableTilt(for: taskTitle),
+                          seed: seed, candlePhase: Double(titleSeed % 628) / 100)
                 .frame(width: style.checkboxSize, height: style.checkboxSize)
                 .overlay {
                     if style == .stamp {
@@ -101,8 +119,8 @@ struct CheckButton: View {
         .accessibilityValue(taskTitle)
     }
 
-    /// タスクごとに決まった種（ろうそくのゆらめきをずらす）
-    private var seed: UInt64 { StampMark.stableSeed(for: taskTitle) }
+    /// タスク名から決まった種（ろうそくのゆらめきをずらす。カードの明かりと合わせる）
+    private var titleSeed: UInt64 { StampMark.stableSeed(for: taskTitle) }
 
     /// 横の伸び縮み。水滴だけは縦と別に動かして、つぶれてから揺れて戻る
     @KeyframeTrackContentBuilder<CGFloat>
@@ -164,6 +182,21 @@ struct CheckButton: View {
             CubicKeyframe(0.7, duration: 0.08)
             SpringKeyframe(1.3, duration: 0.16)
             SpringKeyframe(1.0, duration: 0.3, spring: .bouncy)
+        case .cat:
+            // ねこの手が押すまで待って、ぎゅっと押される
+            CubicKeyframe(1.0, duration: DS.Cat.stampDelay - 0.1)
+            CubicKeyframe(0.84, duration: 0.1)
+            SpringKeyframe(1.0, duration: 0.35, spring: .bouncy)
+        case .fireworks:
+            // 火がつく → ぱっと開く
+            CubicKeyframe(0.78, duration: DS.Fireworks.igniteDelay)
+            SpringKeyframe(1.15, duration: 0.16)
+            SpringKeyframe(1.0, duration: 0.3)
+        case .chick:
+            // 揺れているあいだはそのまま、殻が割れたらぽんとふくらむ
+            CubicKeyframe(1.0, duration: DS.Chick.hatchDuration * DS.Chick.splitAt)
+            CubicKeyframe(1.12, duration: 0.12)
+            SpringKeyframe(1.0, duration: 0.4, spring: .bouncy)
         case .water, .candle:
             LinearKeyframe(1.0, duration: 0.01)
         }
@@ -182,7 +215,10 @@ private struct CheckMarkFace: View {
     let isCompleted: Bool
     let isAnimated: Bool
     var tilt: Double = 0
+    /// タスクごとに決まった種（肉球の向き・花火の色）
     var seed: UInt64 = 0
+    /// ろうそくのゆらめきのずれ
+    var candlePhase: Double = 0
 
     @Environment(\.dsAccent) private var accent
 
@@ -214,7 +250,7 @@ private struct CheckMarkFace: View {
                     .opacity(isCompleted ? 1 : 0)
             }
         case .candle:
-            CandleFace(lit: isCompleted ? 0 : 1, isAnimated: isAnimated, phase: Double(seed % 628) / 100)
+            CandleFace(lit: isCompleted ? 0 : 1, isAnimated: isAnimated, phase: candlePhase)
                 .animation(isAnimated ? candleAnimation : nil, value: isCompleted)
         case .constellation:
             StarFace(isLit: isCompleted)
@@ -230,6 +266,12 @@ private struct CheckMarkFace: View {
         case .flower(let kind):
             FlowerBlossom(kind: kind, progress: isCompleted ? 1 : 0)
                 .animation(isAnimated ? bloomAnimation(kind.spec) : nil, value: isCompleted)
+        case .cat:
+            CatPawCheck(isCompleted: isCompleted, stamp: PawStamp(seed: seed), isAnimated: isAnimated)
+        case .fireworks:
+            FireworkCheck(isCompleted: isCompleted, color: FireworkColor.pick(seed: seed), isAnimated: isAnimated)
+        case .chick:
+            ChickCheck(isCompleted: isCompleted, isAnimated: isAnimated)
         }
     }
 

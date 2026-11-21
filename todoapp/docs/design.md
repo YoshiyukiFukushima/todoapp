@@ -171,12 +171,25 @@
 テーマは 3 つの部品でできている。
 1. **色の表** `ThemePalette`（`DesignSystem/ThemePalettes.swift`）：背景・カード・文字など。`DS.Colors` は今のテーマの表から色を取る（UIKit のトレイト `DSThemeTrait` 経由なので、シートの中まで切り替わる）。
 2. **差し色** `DS.Accent`。
-3. **描き方** `ThemeStyle`（`Themes/ThemeStyle.swift`）：背景・カード・チェック・完了の演出。今は `standard` と `bubble`。
+3. **描き方** `ThemeStyle`（`Themes/ThemeStyle.swift`）：背景・カード・チェック・完了の演出。今は `standard`・`bubble`・`flower`・`water`・`stamp`・`candle`・`constellation`・`cat`・`fireworks`・`chick`。
 
 - **色だけ違うテーマ**：`ColorTheme` に case を足し、`palette`・`accent`・`displayName` を返すだけ。
 - **形や動きも変えるテーマ**：`ThemeStyle` に case を足し、`Themes/<名前>/` に部品を置き、`DSScreenBackground`・`DSSurface`・`CheckButton` などの switch に描き方を足す（足し忘れはコンパイルエラーになる）。
 - 画面の部品は、カードの面は `.dsSurface(...)`、画面の背景は `DSScreenBackground` を使う（`DS.Colors.surface` を直接敷かない）。
 - 暗さを固定するテーマは `ColorTheme.fixedInterfaceStyle` で指定する（ウィンドウ全体に効く）。
+- ガラスのカードを使うテーマは `ThemeStyle.glassTint` を返す（カード・＋ボタン・選んだタブがガラスになる）。
+- タスクごとに見た目を変えたいとき（肉球の向き・花火の色）は `ThemeSeed(id:)` を使う。描き直しても、ウィジェットでも同じになる。
+
+### ねこ・花火・ひよこのテーマ
+| テーマ | チェックしたとき | 全部終わったとき |
+|---|---|---|
+| ねこ | カードの下からねこの手（見えるのは手の甲。肉球はタスクの側）が伸びてきて、タスクごとに気まぐれな向き・ずれ・大きさで肉球のスタンプを押す（手はカードの外に出ない） | 画面の下からねこが顔を出して「にゃ〜」 |
+| 花火 | 玉がタスクごとの色に光り、光の筋が中心からまっすぐ放射状に開く | 画面の下から次々に打ち上がり、夜空に大きく開く |
+| ひよこ | 卵がゆらゆら揺れてひびが入り、上の殻が飛んで、ひよこが生まれる | なし（生まれる動きが主役） |
+
+- 完了したタスクは薄くなるが、この 3 つのテーマではチェック（肉球・花火の玉・ひよこ）だけは薄くしない（`ThemeStyle.keepsCheckBright`）。
+- 部品は `Themes/Cat`・`Themes/Fireworks`・`Themes/Chick`。背景（暗いグラデーション＋足あと・星・光の粒）は `Themes/Night/NightBackdrop.swift` で共通。
+- `〜Views.swift` はウィジェットでも使う（チェックと背景）。`〜Effects.swift` は画面全体に重ねる演出で、アプリだけ。
 
 ## 2026-11-21 タスクを別のグループへ移す
 

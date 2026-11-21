@@ -52,6 +52,8 @@ struct TaskWidgetBackground: View {
             CandleBackdrop()
         case .constellation:
             StarfieldBackdrop(isAnimated: false)
+        case .cat, .fireworks, .chick:
+            NightBackdrop(style: theme.style, isAnimated: false)
         }
     }
 }
@@ -176,7 +178,8 @@ struct WidgetTaskRow: View {
     var body: some View {
         HStack(spacing: DS.Spacing.s) {
             Button(intent: ToggleTaskIntent(taskID: item.id)) {
-                WidgetCheckFace(isCompleted: item.isCompleted, style: colors.theme.style, accent: colors.accent)
+                WidgetCheckFace(isCompleted: item.isCompleted, style: colors.theme.style, accent: colors.accent,
+                                seed: { var random = ThemeSeed(id: item.id); return UInt64(random.next() * Double(UInt32.max)) }())
                     .frame(width: checkSize, height: checkSize)
             }
             .buttonStyle(.plain)
@@ -231,6 +234,8 @@ struct WidgetCheckFace: View {
     let isCompleted: Bool
     let style: ThemeStyle
     let accent: DS.Accent
+    /// タスクごとに決まったでたらめの種（肉球の向き・花火の色）
+    var seed: UInt64 = 0
 
     var body: some View {
         switch style {
@@ -274,6 +279,12 @@ struct WidgetCheckFace: View {
             // 咲いた花は外へ広がるので、行からはみ出しすぎないよう少し小さく描く
             FlowerBlossom(kind: kind, progress: isCompleted ? 1 : 0)
                 .scaleEffect(isCompleted ? 0.72 : 1)
+        case .cat:
+            CatPawCheck(isCompleted: isCompleted, stamp: PawStamp(seed: seed), isAnimated: false)
+        case .fireworks:
+            FireworkCheck(isCompleted: isCompleted, color: FireworkColor.pick(seed: seed), isAnimated: false)
+        case .chick:
+            ChickCheck(isCompleted: isCompleted, isAnimated: false)
         }
     }
 }

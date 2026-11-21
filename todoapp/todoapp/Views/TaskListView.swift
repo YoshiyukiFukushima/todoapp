@@ -28,6 +28,8 @@ struct TaskListView: View {
     @Environment(FlowerEffects.self) private var flowerEffects: FlowerEffects?
     @Environment(WaterEffects.self) private var waterEffects: WaterEffects?
     @Environment(StarEffects.self) private var starEffects: StarEffects?
+    @Environment(CatEffects.self) private var catEffects: CatEffects?
+    @Environment(FireworksEffects.self) private var fireworksEffects: FireworksEffects?
     @State private var taskPendingDelete: TodoTask?
     @State private var showDeleteConfirm = false
     @State private var manualExpandOverrides: [Int: Bool] = [:]
@@ -256,6 +258,10 @@ struct TaskListView: View {
         case .water: waterEffects?.celebrate()
         // 判子・ろうそくは 1 件ずつの演出だけ。星座は夜空の星が線でつながる（StarEffects）
         case .stamp, .candle, .constellation: break
+        case .cat: catEffects?.celebrate()
+        case .fireworks: fireworksEffects?.celebrate()
+        // ひよこは、生まれる動きだけで十分なので、全部終わったときの演出はない
+        case .chick: break
         }
     }
 

@@ -222,6 +222,53 @@ nonisolated extension ThemePalette {
     )
 }
 
+nonisolated extension ThemePalette {
+    /// ねこ（夜のお部屋。ほんのり赤紫のすりガラス。いつも暗い）
+    static let cat = ThemePalette(
+        background: DSColorPair(fixed: 0x2B1D2A),
+        surface: DSColorPair(fixed: 0x4A3548),
+        surfaceSunken: DSColorPair(fixed: 0x36253A),
+        segmentSelected: DSColorPair(fixed: 0x5C4459),
+        surfaceElevated: DSColorPair(fixed: 0x3A2838),
+        textPrimary: DSColorPair(fixed: 0xFFF7FA),
+        textSecondary: DSColorPair(fixed: 0xDCC6D2),
+        textTertiary: DSColorPair(fixed: 0x9F8597),
+        separator: DSColorPair(fixed: 0x4A3548),
+        success: DSColorPair(fixed: 0xF2A6BE),
+        shadow: DSColorPair(fixed: 0x000000, alpha: 0.5)
+    )
+
+    /// 花火（夏の夜空。墨色のガラス。いつも暗い）
+    static let fireworks = ThemePalette(
+        background: DSColorPair(fixed: 0x05070F),
+        surface: DSColorPair(fixed: 0x1D1F2B),
+        surfaceSunken: DSColorPair(fixed: 0x12141E),
+        segmentSelected: DSColorPair(fixed: 0x2C2F40),
+        surfaceElevated: DSColorPair(fixed: 0x171925),
+        textPrimary: DSColorPair(fixed: 0xF4F5FA),
+        textSecondary: DSColorPair(fixed: 0xB4B7C8),
+        textTertiary: DSColorPair(fixed: 0x787C91),
+        separator: DSColorPair(fixed: 0x262938),
+        success: DSColorPair(fixed: 0xF5C77A),
+        shadow: DSColorPair(fixed: 0x000000, alpha: 0.6)
+    )
+
+    /// ひよこ（あたたかい明かりの部屋。こはく色のガラス。いつも暗い）
+    static let chick = ThemePalette(
+        background: DSColorPair(fixed: 0x1F1910),
+        surface: DSColorPair(fixed: 0x4A4030),
+        surfaceSunken: DSColorPair(fixed: 0x2E261A),
+        segmentSelected: DSColorPair(fixed: 0x5E5240),
+        surfaceElevated: DSColorPair(fixed: 0x332A1D),
+        textPrimary: DSColorPair(fixed: 0xFFFAF0),
+        textSecondary: DSColorPair(fixed: 0xDDD0B8),
+        textTertiary: DSColorPair(fixed: 0xA0927A),
+        separator: DSColorPair(fixed: 0x4A4030),
+        success: DSColorPair(fixed: 0xFFD54A),
+        shadow: DSColorPair(fixed: 0x000000, alpha: 0.5)
+    )
+}
+
 nonisolated extension UIColor {
     convenience init(rgb: UInt32, alpha: CGFloat = 1) {
         self.init(

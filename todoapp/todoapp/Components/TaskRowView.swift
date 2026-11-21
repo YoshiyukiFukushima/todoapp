@@ -18,6 +18,14 @@ struct TaskRowView: View {
     @Environment(BubbleEffects.self) private var bubbleEffects: BubbleEffects?
     @Environment(\.accessibilityReduceMotion) private var reduceMotion
     @State private var sinkTrigger = 0
+    /// カードの画面上の位置（ねこの手がカードの中だけに見えるようにする）
+    @State private var cardFrame: CGRect = .zero
+
+    /// 肉球の向き・花火の色を決める種（タスクごとに決まる。ウィジェットとも同じになる）
+    private var seed: UInt64 {
+        var random = ThemeSeed(id: task.id)
+        return UInt64(random.next() * Double(UInt32.max))
+    }
 
     var body: some View {
         HStack(alignment: .top, spacing: 0) {
@@ -25,8 +33,12 @@ struct TaskRowView: View {
                 isCompleted: task.isCompleted,
                 taskTitle: task.title,
                 animationsEnabled: animationsEnabled,
+                seed: seed,
+                cardFrame: cardFrame,
                 action: onToggleComplete
             )
+            // ねこ・花火・ひよこは、チェックの絵（肉球・花火の玉・ひよこ）が主役なので薄くしない
+            .opacity(style.keepsCheckBright ? 1 : rowOpacity)
             .padding(.leading, style.glassTint != nil ? DS.Spacing.s : DS.Spacing.xs)
             .padding(.top, DS.Spacing.xs)
 
@@ -39,26 +51,34 @@ struct TaskRowView: View {
             }
             .buttonStyle(.plain)
             .accessibilityHint("詳細を開く")
+            .opacity(rowOpacity)
         }
         // 水滴のテーマ：終えたカードの下半分に水がたまる（ガラスの上、文字の下）
         // ろうそくのテーマ：まだのカードは火に照らされ、終えると暗くなる
         .background {
-            switch style {
-            case .water:
-                WaterPool(isFilled: task.isCompleted, isAnimated: isAnimated)
-                    .clipShape(RoundedRectangle(cornerRadius: style.cardRadius, style: .continuous))
-            case .candle:
-                CandleCardLight(isLit: !task.isCompleted, isAnimated: isAnimated,
-                                phase: Double(StampMark.stableSeed(for: task.title) % 628) / 100)
-                    .clipShape(RoundedRectangle(cornerRadius: style.cardRadius, style: .continuous))
-            default:
-                EmptyView()
+            Group {
+                switch style {
+                case .water:
+                    WaterPool(isFilled: task.isCompleted, isAnimated: isAnimated)
+                        .clipShape(RoundedRectangle(cornerRadius: style.cardRadius, style: .continuous))
+                case .candle:
+                    CandleCardLight(isLit: !task.isCompleted, isAnimated: isAnimated,
+                                    phase: Double(StampMark.stableSeed(for: task.title) % 628) / 100)
+                        .clipShape(RoundedRectangle(cornerRadius: style.cardRadius, style: .continuous))
+                default:
+                    EmptyView()
+                }
             }
+            .opacity(rowOpacity)
         }
-        .dsSurface(.card, elevation: task.isCompleted ? .none : .card)
+        .background {
+            DSSurface(shape: .card, elevation: task.isCompleted ? .none : .card)
+                .opacity(rowOpacity)
+        }
         // 全部終わったときに、このカードから泡をあふれさせるため位置を知らせる
         .onGeometryChange(for: CGRect.self) { $0.frame(in: .global) } action: { frame in
             if style.hasCompletionEffects { bubbleEffects?.updateCardFrame(frame, for: task.id) }
+            if style == .cat { cardFrame = frame }
         }
         .onDisappear { bubbleEffects?.removeCardFrame(for: task.id) }
         // 判子のテーマ：判子が紙に当たった瞬間、カードがぐっと沈む
@@ -72,7 +92,6 @@ struct TaskRowView: View {
         .onChange(of: task.isCompleted) { _, isCompleted in
             if isCompleted, style == .stamp, isAnimated { sinkTrigger += 1 }
         }
-        .opacity(task.isCompleted ? completedOpacity : 1)
         .animation(fadeOutOnComplete ? DS.Motion.fade : nil, value: task.isCompleted)
     }
 
@@ -82,6 +101,9 @@ struct TaskRowView: View {
     private var completedOpacity: Double {
         style == .stamp ? 0.85 : DS.Opacity.completed
     }
+
+    /// 今の行の薄さ（終えた行だけ薄くする）
+    private var rowOpacity: Double { task.isCompleted ? completedOpacity : 1 }
 }
 
 /// タイトル・期限と繰り返し・メモ

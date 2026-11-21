@@ -132,6 +132,35 @@ private struct ThemeSwatch: View {
                     .frame(width: DS.Size.groupIcon * 0.4, height: DS.Size.groupIcon * 0.4)
             }
             .clipShape(Circle())
+        case .cat:
+            ZStack {
+                Circle().fill(LinearGradient(colors: [DS.Cat.glows[0].0, DS.Cat.deepTop, DS.Cat.glows[1].0],
+                                             startPoint: .topLeading, endPoint: .bottomTrailing))
+                PawPrintShape()
+                    .fill(DS.Cat.padLight)
+                    .frame(width: DS.Size.groupIcon * 0.48, height: DS.Size.groupIcon * 0.48)
+                    .rotationEffect(.degrees(-18))
+            }
+            .clipShape(Circle())
+        case .fireworks:
+            ZStack {
+                Circle().fill(LinearGradient(colors: [DS.Fireworks.glows[0].0, DS.Fireworks.deepBottom],
+                                             startPoint: .top, endPoint: .bottom))
+                Canvas { context, size in
+                    FireworkDrawing.drawBurst(in: context, center: CGPoint(x: size.width / 2, y: size.height / 2),
+                                              radius: size.width * 0.42, rays: 14, rotation: 0,
+                                              color: FireworkColor.all[2], t: 0.5, duration: 1.3, lineWidth: 1.2)
+                }
+            }
+            .clipShape(Circle())
+        case .chick:
+            ZStack {
+                Circle().fill(LinearGradient(colors: [DS.Chick.glows[0].0, DS.Chick.deepTop],
+                                             startPoint: .topLeading, endPoint: .bottomTrailing))
+                ChickHatch(progress: 1)
+                    .frame(width: DS.Size.groupIcon * 0.58, height: DS.Size.groupIcon * 0.58)
+            }
+            .clipShape(Circle())
         case .water:
             ZStack {
                 Circle().fill(LinearGradient(colors: [DS.Water.glows[0], DS.Water.deepTop, DS.Water.glows[2]],

@@ -36,6 +36,9 @@ struct ContentView: View {
     @State private var waterEffects = WaterEffects()
     @State private var candleEffects = CandleEffects()
     @State private var starEffects = StarEffects()
+    @State private var catEffects = CatEffects()
+    @State private var fireworksEffects = FireworksEffects()
+    @State private var chickEffects = ChickEffects()
 
     private var taskViewModel: TaskViewModel { TaskViewModel(modelContext: modelContext) }
     private var groupViewModel: GroupViewModel { GroupViewModel(modelContext: modelContext) }
@@ -158,6 +161,9 @@ struct ContentView: View {
             case .constellation: StarEffectsLayer(effects: starEffects)
             // 判子の動きは、行の中（チェックとカード）で完結する
             case .stamp: EmptyView()
+            case .cat: CatEffectsLayer(effects: catEffects)
+            case .fireworks: FireworksEffectsLayer(effects: fireworksEffects)
+            case .chick: ChickEffectsLayer(effects: chickEffects)
             }
         }
         .environment(bubbleEffects)
@@ -165,6 +171,9 @@ struct ContentView: View {
         .environment(waterEffects)
         .environment(candleEffects)
         .environment(starEffects)
+        .environment(catEffects)
+        .environment(fireworksEffects)
+        .environment(chickEffects)
         .dsRoot(theme: theme)
         .dsApplyThemeToWindows(theme)
         .onAppear(perform: seedDefaultGroupIfNeeded)

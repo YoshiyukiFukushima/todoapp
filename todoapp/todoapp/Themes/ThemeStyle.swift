@@ -28,6 +28,12 @@ nonisolated enum ThemeStyle: Sendable, Equatable {
     case candle
     /// 星座（夜のガラスのカード、灯る星、夜空の星座）
     case constellation
+    /// ねこ（すりガラスのカード、ねこの手が押す肉球のスタンプ、全部終わると顔を出すねこ）
+    case cat
+    /// 花火（夜空のカード、まっすぐ放射状に開く花火、全部終わると打ち上げ）
+    case fireworks
+    /// ひよこ（あたたかいガラスのカード、卵が割れて生まれるひよこ、全部終わると跳ねるひよこ）
+    case chick
 }
 
 extension ThemeStyle {
@@ -35,7 +41,7 @@ extension ThemeStyle {
     var cardRadius: CGFloat {
         switch self {
         case .standard: DS.Radius.l
-        case .bubble, .flower, .water, .candle, .constellation: DS.Radius.bubbleCard
+        case .bubble, .flower, .water, .candle, .constellation, .cat, .fireworks, .chick: DS.Radius.bubbleCard
         case .stamp: DS.Radius.l
         }
     }
@@ -50,6 +56,16 @@ extension ThemeStyle {
         case .stamp: 34
         case .candle: 30
         case .constellation: 28
+        case .cat, .fireworks: DS.Size.bubbleCheckbox
+        case .chick: DS.Size.chickCheckbox
+        }
+    }
+
+    /// 完了したタスクでも、チェックを薄くしないか（チェックの絵が主役のテーマ）
+    var keepsCheckBright: Bool {
+        switch self {
+        case .cat, .fireworks, .chick: true
+        case .standard, .bubble, .flower, .water, .stamp, .candle, .constellation: false
         }
     }
 
@@ -66,6 +82,9 @@ extension ThemeStyle {
         case .stamp: nil
         case .candle: DS.Candle.glass
         case .constellation: DS.Star.glass
+        case .cat: DS.Cat.glass
+        case .fireworks: DS.Fireworks.glass
+        case .chick: DS.Chick.glass
         }
     }
 }
@@ -93,6 +112,8 @@ struct DSScreenBackground: View {
             CandleBackdrop()
         case .constellation:
             StarfieldBackdrop(isAnimated: themeManager.animationsEnabled && !reduceMotion)
+        case .cat, .fireworks, .chick:
+            NightBackdrop(style: style, isAnimated: themeManager.animationsEnabled && !reduceMotion)
         }
     }
 }
@@ -128,7 +149,7 @@ struct DSSurface: View {
         switch style {
         case .standard:
             path.fill(DS.Colors.surface).dsShadow(elevation)
-        case .bubble, .flower, .water:
+        case .bubble, .flower, .water, .cat, .fireworks, .chick:
             BubbleGlass(shape: path, tint: style.glassTint ?? .bubble,
                         highlight: shape == .circle ? .spot : .bar, isDimmed: elevation == .none)
         case .candle, .constellation:
