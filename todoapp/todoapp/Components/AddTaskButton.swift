@@ -30,11 +30,10 @@ struct AddTaskButton: View {
 
     @ViewBuilder
     private var face: some View {
-        switch style {
-        case .standard, .stamp:
+        if let tint = style.glassTint {
+            BubbleSphere(isFilled: true, tint: tint).dsShadow(.floating)
+        } else {
             Circle().fill(accent.fill).dsShadow(.floating)
-        case .bubble, .flower, .water, .candle, .constellation:
-            BubbleSphere(isFilled: true, tint: style.glassTint ?? .bubble).dsShadow(.floating)
         }
     }
 }
