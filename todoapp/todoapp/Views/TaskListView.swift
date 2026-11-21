@@ -25,6 +25,7 @@ struct TaskListView: View {
     @Environment(\.accessibilityReduceMotion) private var reduceMotion
     @Environment(\.dsStyle) private var style
     @Environment(BubbleEffects.self) private var bubbleEffects: BubbleEffects?
+    @Environment(FlowerEffects.self) private var flowerEffects: FlowerEffects?
     @State private var taskPendingDelete: TodoTask?
     @State private var showDeleteConfirm = false
     @State private var manualExpandOverrides: [Int: Bool] = [:]
@@ -235,7 +236,11 @@ struct TaskListView: View {
         guard willComplete, style.hasCompletionEffects, themeManager.animationsEnabled, !reduceMotion,
               let progress = TaskQuery().progress(in: scopeTasks, for: filter),
               progress.total > 0, progress.done == progress.total else { return }
-        bubbleEffects?.celebrate()
+        switch style {
+        case .standard: break
+        case .bubble: bubbleEffects?.celebrate()
+        case .flower(let kind): flowerEffects?.celebrate(kind)
+        }
     }
 
     // MARK: - 共通行

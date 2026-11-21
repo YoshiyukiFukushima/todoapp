@@ -3,9 +3,31 @@
 //  todoapp
 //
 //  泡のテーマの部品：ガラスの面、シャボン玉、水の中の背景。
+//  ガラスの面とシャボン玉は、色（GlassTint）を変えて花のテーマでも使う（花の色は FlowerSpec.glass）。
 //
 
 import SwiftUI
+
+// MARK: - ガラスと玉の色
+
+/// ガラスの面・玉の色の組。形は同じで、テーマごとに色だけ変える
+struct GlassTint {
+    let glassTop: Color
+    let glassBottom: Color
+    /// 空の玉（未完了のチェック）のふちの色みと奥の色
+    let sphereTint: Color
+    let sphereEdge: Color
+    /// 満ちた玉（完了・＋ボタン）
+    let filledLight: Color
+    let filledMid: Color
+    let filledDeep: Color
+
+    static let bubble = GlassTint(
+        glassTop: DS.Bubble.glassTop, glassBottom: DS.Bubble.glassBottom,
+        sphereTint: DS.Bubble.tint, sphereEdge: DS.Bubble.sphereEdge,
+        filledLight: DS.Bubble.filledLight, filledMid: DS.Bubble.filledMid, filledDeep: DS.Bubble.filledDeep
+    )
+}
 
 // MARK: - ガラスの面（カード・丸いボタン・選んだタブ）
 
@@ -20,13 +42,14 @@ struct BubbleGlass<S: InsettableShape>: View {
     }
 
     let shape: S
+    var tint: GlassTint = .bubble
     var highlight: Highlight = .bar
     /// 完了したカードなど、控えめにする
     var isDimmed = false
 
     var body: some View {
         ZStack {
-            shape.fill(LinearGradient(colors: [DS.Bubble.glassTop, DS.Bubble.glassBottom],
+            shape.fill(LinearGradient(colors: [tint.glassTop, tint.glassBottom],
                                       startPoint: .top, endPoint: .bottom))
             shape.strokeBorder(
                 LinearGradient(colors: [DS.Bubble.rim.opacity(0.55), DS.Bubble.rim.opacity(0.12), DS.Bubble.rim.opacity(0.4)],
@@ -70,6 +93,7 @@ struct BubbleGlass<S: InsettableShape>: View {
 struct BubbleSphere: View {
     /// true: 満ちた青い泡（完了・＋ボタン）／ false: 透きとおった空の泡
     let isFilled: Bool
+    var tint: GlassTint = .bubble
 
     var body: some View {
         GeometryReader { proxy in
@@ -77,11 +101,11 @@ struct BubbleSphere: View {
             ZStack {
                 if isFilled {
                     Circle().fill(RadialGradient(
-                        colors: [DS.Bubble.filledLight, DS.Bubble.filledMid, DS.Bubble.filledDeep],
+                        colors: [tint.filledLight, tint.filledMid, tint.filledDeep],
                         center: UnitPoint(x: 0.35, y: 0.3), startRadius: 0, endRadius: size * 0.75))
                 } else {
                     Circle().fill(RadialGradient(
-                        colors: [DS.Bubble.rim.opacity(0.45), DS.Bubble.tint.opacity(0.25), DS.Bubble.sphereEdge.opacity(0.7)],
+                        colors: [DS.Bubble.rim.opacity(0.45), tint.sphereTint.opacity(0.25), tint.sphereEdge.opacity(0.7)],
                         center: UnitPoint(x: 0.35, y: 0.3), startRadius: 0, endRadius: size * 0.75))
                 }
                 Circle().strokeBorder(

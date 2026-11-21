@@ -32,6 +32,7 @@ struct ContentView: View {
     @State private var showDeleteGroupConfirm = false
     /// 泡のテーマの、はじける演出（画面全体に重ねて描く）
     @State private var bubbleEffects = BubbleEffects()
+    @State private var flowerEffects = FlowerEffects()
 
     private var taskViewModel: TaskViewModel { TaskViewModel(modelContext: modelContext) }
     private var groupViewModel: GroupViewModel { GroupViewModel(modelContext: modelContext) }
@@ -136,11 +137,14 @@ struct ContentView: View {
                 .dsRoot(theme: theme)
         }
         .overlay {
-            if theme.style.hasCompletionEffects {
-                BubbleEffectsLayer(effects: bubbleEffects)
+            switch theme.style {
+            case .standard: EmptyView()
+            case .bubble: BubbleEffectsLayer(effects: bubbleEffects)
+            case .flower: FlowerEffectsLayer(effects: flowerEffects)
             }
         }
         .environment(bubbleEffects)
+        .environment(flowerEffects)
         .dsRoot(theme: theme)
         .dsApplyThemeToWindows(theme)
         .onAppear(perform: seedDefaultGroupIfNeeded)

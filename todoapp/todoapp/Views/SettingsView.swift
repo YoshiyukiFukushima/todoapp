@@ -84,7 +84,7 @@ private struct ThemePicker: View {
     }
 }
 
-/// テーマの見本。モノクロは白と黒の半分ずつ、泡は水の中のシャボン玉
+/// テーマの見本。モノクロは白と黒の半分ずつ、泡は水の中のシャボン玉、花は夜の庭に咲いた花
 private struct ThemeSwatch: View {
     let theme: ColorTheme
     let isSelected: Bool
@@ -123,6 +123,15 @@ private struct ThemeSwatch: View {
                     .offset(x: DS.Size.groupIcon * 0.2, y: -DS.Size.groupIcon * 0.18)
             }
             .clipShape(Circle())
+        case .flower(let kind):
+            let spec = kind.spec
+            ZStack {
+                Circle().fill(LinearGradient(colors: [spec.glows[0], spec.deepTop, spec.glows[2]],
+                                             startPoint: .topLeading, endPoint: .bottomTrailing))
+                FlowerBlossom(kind: kind, progress: 1)
+                    .frame(width: DS.Size.groupIcon * 0.4, height: DS.Size.groupIcon * 0.4)
+            }
+            .clipShape(Circle())
         case .standard:
             if theme.isMonochrome {
                 ZStack {
@@ -141,6 +150,6 @@ private struct ThemeSwatch: View {
 
     private var checkColor: Color {
         if theme.isMonochrome { return DS.Colors.monoSwatchLight }
-        return theme.style == .bubble ? DS.Bubble.rim : theme.accent.onFill
+        return theme.style == .standard ? theme.accent.onFill : DS.Bubble.rim
     }
 }

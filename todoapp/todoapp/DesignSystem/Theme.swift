@@ -21,6 +21,10 @@ nonisolated enum ColorTheme: String, CaseIterable, Identifiable, Sendable {
     case mikan, tomato, berry, grape, sky, teal, leaf, cocoa, mono
     /// 泡（シャボン玉）。いつも暗い水の中の見た目
     case bubble
+    /// 桜。夜桜の庭で、チェックすると 5 枚の花びらが咲く。いつも暗い
+    case sakura
+    /// マーガレット。夜の草原で、チェックすると白い花が咲く。いつも暗い
+    case margaret
 
     var id: String { rawValue }
 
@@ -31,18 +35,28 @@ nonisolated enum ColorTheme: String, CaseIterable, Identifiable, Sendable {
         switch self {
         case .mono: .mono
         case .bubble: .bubble
+        case .sakura: .sakura
+        case .margaret: .margaret
         default: .warm
         }
     }
 
     /// 背景・カード・チェックなどの描き方
     var style: ThemeStyle {
-        self == .bubble ? .bubble : .standard
+        switch self {
+        case .bubble: .bubble
+        case .sakura: .flower(.sakura)
+        case .margaret: .flower(.margaret)
+        default: .standard
+        }
     }
 
     /// ライト／ダークを固定するテーマ（nil なら端末の設定に従う）
     var fixedInterfaceStyle: UIUserInterfaceStyle? {
-        self == .bubble ? .dark : nil
+        switch style {
+        case .standard: nil
+        case .bubble, .flower: .dark
+        }
     }
 
     /// グループの色も墨色（グレー）にするか
@@ -54,6 +68,8 @@ extension ColorTheme {
         switch self {
         case .mono: "モノクロ"
         case .bubble: "泡"
+        case .sakura: "桜"
+        case .margaret: "マーガレット"
         default: accent.displayName
         }
     }
@@ -71,6 +87,8 @@ extension ColorTheme {
         case .cocoa: .cocoa
         case .mono: .ink
         case .bubble: .sky
+        case .sakura: .berry
+        case .margaret: .leaf
         }
     }
 }

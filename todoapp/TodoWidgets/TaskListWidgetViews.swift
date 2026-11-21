@@ -42,6 +42,8 @@ struct TaskWidgetBackground: View {
         case .bubble:
             // 泡は動かない絵にする（ウィジェットは動き続ける演出ができない）
             BubbleBackdrop(isAnimated: false)
+        case .flower(let kind):
+            FlowerBackdrop(kind: kind, isAnimated: false)
         }
     }
 }
@@ -185,11 +187,11 @@ struct WidgetTaskRow: View {
                 }
             }
         }
-        .padding(.horizontal, colors.theme.style == .bubble ? DS.Spacing.s : 0)
+        .padding(.horizontal, colors.theme.style.glassTint != nil ? DS.Spacing.s : 0)
         .padding(.vertical, isLarge ? DS.Spacing.xxs + 1 : 1)
         .background {
-            if colors.theme.style == .bubble {
-                BubbleGlass(shape: Capsule(), highlight: .none, isDimmed: item.isCompleted)
+            if let tint = colors.theme.style.glassTint {
+                BubbleGlass(shape: Capsule(), tint: tint, highlight: .none, isDimmed: item.isCompleted)
             }
         }
         .opacity(item.isCompleted ? DS.Opacity.completed : 1)
@@ -244,6 +246,10 @@ struct WidgetCheckFace: View {
                         .foregroundStyle(accent.onFill)
                 }
             }
+        case .flower(let kind):
+            // 咲いた花は外へ広がるので、行からはみ出しすぎないよう少し小さく描く
+            FlowerBlossom(kind: kind, progress: isCompleted ? 1 : 0)
+                .scaleEffect(isCompleted ? 0.72 : 1)
         }
     }
 }
