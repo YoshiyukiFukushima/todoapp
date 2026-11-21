@@ -25,6 +25,16 @@ nonisolated enum ColorTheme: String, CaseIterable, Identifiable, Sendable {
     case sakura
     /// マーガレット。夜の草原で、チェックすると白い花が咲く。いつも暗い
     case margaret
+    /// 氷の結晶（六花）。雪の夜で、チェックすると結晶が回りながら広がる。いつも暗い
+    case rikka
+    /// 水滴。深い水の中で、しずくが落ちて水玉になり、カードに水がたまる。いつも暗い
+    case water
+    /// 判子。和紙のカードに、朱色の「済」を押す。いつも明るい
+    case stamp
+    /// ろうそく。まだのタスクは火に照らされ、終えると火が消える。いつも暗い
+    case candle
+    /// 星座。終えると星が灯り、全部終えると星座になる。いつも暗い
+    case constellation
 
     var id: String { rawValue }
 
@@ -37,6 +47,11 @@ nonisolated enum ColorTheme: String, CaseIterable, Identifiable, Sendable {
         case .bubble: .bubble
         case .sakura: .sakura
         case .margaret: .margaret
+        case .rikka: .rikka
+        case .water: .water
+        case .stamp: .stamp
+        case .candle: .candle
+        case .constellation: .constellation
         default: .warm
         }
     }
@@ -47,6 +62,11 @@ nonisolated enum ColorTheme: String, CaseIterable, Identifiable, Sendable {
         case .bubble: .bubble
         case .sakura: .flower(.sakura)
         case .margaret: .flower(.margaret)
+        case .rikka: .flower(.rikka)
+        case .water: .water
+        case .stamp: .stamp
+        case .candle: .candle
+        case .constellation: .constellation
         default: .standard
         }
     }
@@ -55,7 +75,8 @@ nonisolated enum ColorTheme: String, CaseIterable, Identifiable, Sendable {
     var fixedInterfaceStyle: UIUserInterfaceStyle? {
         switch style {
         case .standard: nil
-        case .bubble, .flower: .dark
+        case .bubble, .flower, .water, .candle, .constellation: .dark
+        case .stamp: .light
         }
     }
 
@@ -70,6 +91,11 @@ extension ColorTheme {
         case .bubble: "泡"
         case .sakura: "桜"
         case .margaret: "マーガレット"
+        case .rikka: "結晶"
+        case .water: "水滴"
+        case .stamp: "判子"
+        case .candle: "ろうそく"
+        case .constellation: "星座"
         default: accent.displayName
         }
     }
@@ -89,6 +115,11 @@ extension ColorTheme {
         case .bubble: .sky
         case .sakura: .berry
         case .margaret: .leaf
+        case .rikka: .sky
+        case .water: .sky
+        case .stamp: .tomato
+        case .candle: .mikan
+        case .constellation: .grape
         }
     }
 }

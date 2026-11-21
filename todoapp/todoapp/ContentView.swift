@@ -33,6 +33,9 @@ struct ContentView: View {
     /// 泡のテーマの、はじける演出（画面全体に重ねて描く）
     @State private var bubbleEffects = BubbleEffects()
     @State private var flowerEffects = FlowerEffects()
+    @State private var waterEffects = WaterEffects()
+    @State private var candleEffects = CandleEffects()
+    @State private var starEffects = StarEffects()
 
     private var taskViewModel: TaskViewModel { TaskViewModel(modelContext: modelContext) }
     private var groupViewModel: GroupViewModel { GroupViewModel(modelContext: modelContext) }
@@ -72,7 +75,16 @@ struct ContentView: View {
 
                 mainColumn
             }
-            .background { DSScreenBackground().ignoresSafeArea() }
+            .background {
+                ZStack {
+                    DSScreenBackground()
+                    // 星座のテーマ：一覧の下の夜空に、星座の星を置く
+                    if theme.style == .constellation {
+                        ConstellationSky(effects: starEffects)
+                    }
+                }
+                .ignoresSafeArea()
+            }
 
             if isSidebarOpen {
                 DS.Colors.scrim
@@ -141,10 +153,18 @@ struct ContentView: View {
             case .standard: EmptyView()
             case .bubble: BubbleEffectsLayer(effects: bubbleEffects)
             case .flower: FlowerEffectsLayer(effects: flowerEffects)
+            case .water: WaterEffectsLayer(effects: waterEffects)
+            case .candle: CandleEffectsLayer(effects: candleEffects)
+            case .constellation: StarEffectsLayer(effects: starEffects)
+            // 判子の動きは、行の中（チェックとカード）で完結する
+            case .stamp: EmptyView()
             }
         }
         .environment(bubbleEffects)
         .environment(flowerEffects)
+        .environment(waterEffects)
+        .environment(candleEffects)
+        .environment(starEffects)
         .dsRoot(theme: theme)
         .dsApplyThemeToWindows(theme)
         .onAppear(perform: seedDefaultGroupIfNeeded)

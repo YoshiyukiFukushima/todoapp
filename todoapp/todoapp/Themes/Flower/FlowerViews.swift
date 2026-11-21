@@ -18,7 +18,24 @@ struct PetalShape: Shape {
         switch style {
         case .notched: notched(in: r)
         case .slender: slender(in: r)
+        case .crystal: crystal(in: r)
         }
+    }
+
+    /// 氷の腕：まっすぐな軸と、外へ向かう 2 組の枝（線で描く）
+    private func crystal(in r: CGRect) -> Path {
+        let w = r.width, h = r.height
+        var p = Path()
+        p.move(to: CGPoint(x: r.midX, y: r.maxY))
+        p.addLine(to: CGPoint(x: r.midX, y: r.minY + h * 0.06))
+        for (y, reach, rise) in [(0.56, 0.44, 0.22), (0.3, 0.32, 0.15)] {
+            let base = CGPoint(x: r.midX, y: r.minY + h * y)
+            p.move(to: base)
+            p.addLine(to: CGPoint(x: r.midX - w * reach, y: base.y - h * rise))
+            p.move(to: base)
+            p.addLine(to: CGPoint(x: r.midX + w * reach, y: base.y - h * rise))
+        }
+        return p
     }
 
     /// 付け根が細く、先に小さな切れ込み（桜）
@@ -81,6 +98,8 @@ private struct PetalVeinShape: Shape {
         case .slender:
             p.move(to: point(0.5, 0.92))
             p.addLine(to: point(0.5, 0.25))
+        case .crystal:
+            break
         }
         return p
     }
@@ -91,6 +110,29 @@ struct PetalView: View {
     let spec: FlowerSpec
 
     var body: some View {
+        if spec.petalStyle == .crystal {
+            crystal
+        } else {
+            petal
+        }
+    }
+
+    /// 氷の腕は塗らずに、白い太い線と、ふちの青い光で描く
+    private var crystal: some View {
+        GeometryReader { proxy in
+            let line = max(1.5, proxy.size.width * 0.17)
+            ZStack {
+                PetalShape(style: .crystal)
+                    .stroke(spec.petalEdge.opacity(0.7), style: StrokeStyle(lineWidth: line + 1.6, lineCap: .round, lineJoin: .round))
+                    .blur(radius: 1)
+                PetalShape(style: .crystal)
+                    .stroke(LinearGradient(colors: [spec.petalTip, spec.petalBase], startPoint: .top, endPoint: .bottom),
+                            style: StrokeStyle(lineWidth: line, lineCap: .round, lineJoin: .round))
+            }
+        }
+    }
+
+    private var petal: some View {
         ZStack {
             PetalShape(style: spec.petalStyle)
                 .fill(LinearGradient(colors: [spec.petalTip, spec.petalBase], startPoint: .top, endPoint: .bottom))
@@ -125,6 +167,11 @@ struct FlowerBlossom: View, Animatable {
                     petal(index, size: size)
                 }
                 center(size: size)
+                if spec.tipSparkle {
+                    ForEach(0..<spec.petalCount, id: \.self) { index in
+                        sparkle(index, size: size)
+                    }
+                }
             }
             .frame(width: size, height: size)
             .position(x: proxy.size.width / 2, y: proxy.size.height / 2)
@@ -150,6 +197,22 @@ struct FlowerBlossom: View, Animatable {
             // 花全体が回り込みながら開く
             .rotationEffect(.degrees(Double(index) * 360 / Double(spec.petalCount) + (1 - p) * spec.swirl))
             .opacity(min(p * 4, 1))
+    }
+
+    /// 咲ききる直前に、花びらの先がきらっと光る（咲ききったら消える）
+    private func sparkle(_ index: Int, size: CGFloat) -> some View {
+        let glint = Self.smoothstep(0.76, 0.88, progress) * (1 - Self.smoothstep(0.9, 1.0, progress))
+        let reach = size * (spec.petalLength + spec.petalInset) * Self.easeOutBack(petalProgress(index))
+        let star = size * 0.34 * (0.5 + glint)
+        return SparkleShape()
+            .fill(Color.white)
+            .frame(width: star, height: star)
+            .shadow(color: spec.petalEdge, radius: 3)
+            .rotationEffect(.degrees(glint * 90))
+            .offset(y: -reach)
+            .rotationEffect(.degrees(Double(index) * 360 / Double(spec.petalCount)
+                                     + (1 - petalProgress(index)) * spec.swirl))
+            .opacity(glint)
     }
 
     /// つぼみ（真珠のような玉）が縮んで、黄色い花芯に変わる
@@ -197,6 +260,22 @@ struct FlowerBlossom: View, Animatable {
     }
 }
 
+/// 4 本のとがった光
+struct SparkleShape: Shape {
+    func path(in r: CGRect) -> Path {
+        let c = CGPoint(x: r.midX, y: r.midY)
+        let a = r.width / 2, b = r.width * 0.1
+        var p = Path()
+        p.move(to: CGPoint(x: c.x, y: c.y - a))
+        p.addQuadCurve(to: CGPoint(x: c.x + a, y: c.y), control: CGPoint(x: c.x + b, y: c.y - b))
+        p.addQuadCurve(to: CGPoint(x: c.x, y: c.y + a), control: CGPoint(x: c.x + b, y: c.y + b))
+        p.addQuadCurve(to: CGPoint(x: c.x - a, y: c.y), control: CGPoint(x: c.x - b, y: c.y + b))
+        p.addQuadCurve(to: CGPoint(x: c.x, y: c.y - a), control: CGPoint(x: c.x - b, y: c.y - b))
+        p.closeSubpath()
+        return p
+    }
+}
+
 // MARK: - Canvas に花びらを描く（背景・舞い落ちる演出で共通）
 
 enum FlowerDrawing {
@@ -208,6 +287,10 @@ enum FlowerDrawing {
         c.opacity = opacity
         c.translateBy(x: center.x, y: center.y)
         c.rotate(by: angle)
+        if spec.petalStyle == .crystal {
+            drawSnow(in: &c, spec: spec, size: size, color: color)
+            return
+        }
         // 裏返りかけでも消えきらないよう、少し幅を残す
         c.scaleBy(x: max(abs(flip), 0.15), y: 1)
         // 細い花びらは少し太めに描く（小さく落ちると線に見えるため）
@@ -218,6 +301,24 @@ enum FlowerDrawing {
                                            startPoint: CGPoint(x: 0, y: rect.minY),
                                            endPoint: CGPoint(x: 0, y: rect.maxY)))
         c.stroke(path, with: .color(spec.petalEdge.opacity(0.45)), lineWidth: 0.7)
+    }
+
+    /// 小さな雪：ぼんやり光る粒。大きめの粒には 6 本の細い腕をつける
+    private static func drawSnow(in c: inout GraphicsContext, spec: FlowerSpec, size: CGFloat, color: Color) {
+        let r = size / 2
+        let glow = CGRect(x: -r, y: -r, width: size, height: size)
+        c.fill(Circle().path(in: glow), with: .radialGradient(
+            Gradient(colors: [color, color.opacity(0.5), color.opacity(0)]),
+            center: .zero, startRadius: 0, endRadius: r))
+        guard size >= 7 else { return }
+        var arms = Path()
+        for index in 0..<3 {
+            let angle = Double(index) * .pi / 3
+            let dx = cos(angle) * r, dy = sin(angle) * r
+            arms.move(to: CGPoint(x: -dx, y: -dy))
+            arms.addLine(to: CGPoint(x: dx, y: dy))
+        }
+        c.stroke(arms, with: .color(spec.petalTip), style: StrokeStyle(lineWidth: 1, lineCap: .round))
     }
 }
 

@@ -131,6 +131,81 @@ nonisolated extension ThemePalette {
         shadow: DSColorPair(fixed: 0x000000, alpha: 0.5)
     )
 
+    /// 判子（和紙。いつも明るい）
+    static let stamp = ThemePalette(
+        background: DSColorPair(fixed: 0xE9E0CF),
+        surface: DSColorPair(fixed: 0xFAF6EE),
+        surfaceSunken: DSColorPair(fixed: 0xDFD4BF),
+        segmentSelected: DSColorPair(fixed: 0xFAF6EE),
+        surfaceElevated: DSColorPair(fixed: 0xFFFDF8),
+        textPrimary: DSColorPair(fixed: 0x3B3226),
+        textSecondary: DSColorPair(fixed: 0x7A6D5B),
+        textTertiary: DSColorPair(fixed: 0xA89B86),
+        separator: DSColorPair(fixed: 0xD9CDB7),
+        success: DSColorPair(fixed: 0xC2452F),
+        shadow: DSColorPair(fixed: 0x6B5A3A, alpha: 0.18)
+    )
+
+    /// ろうそく（暗い部屋。いつも暗い）
+    static let candle = ThemePalette(
+        background: DSColorPair(fixed: 0x0C0B0F),
+        surface: DSColorPair(fixed: 0x1F1D23),
+        surfaceSunken: DSColorPair(fixed: 0x17161B),
+        segmentSelected: DSColorPair(fixed: 0x2E2B33),
+        surfaceElevated: DSColorPair(fixed: 0x1A191E),
+        textPrimary: DSColorPair(fixed: 0xF7EEDF),
+        textSecondary: DSColorPair(fixed: 0xBCAE9A),
+        textTertiary: DSColorPair(fixed: 0x7B7266),
+        separator: DSColorPair(fixed: 0x2A282F),
+        success: DSColorPair(fixed: 0xF2B663),
+        shadow: DSColorPair(fixed: 0x000000, alpha: 0.6)
+    )
+
+    /// 星座（夜空。いつも暗い）
+    static let constellation = ThemePalette(
+        background: DSColorPair(fixed: 0x080C1E),
+        surface: DSColorPair(fixed: 0x1C1F33),
+        surfaceSunken: DSColorPair(fixed: 0x111428),
+        segmentSelected: DSColorPair(fixed: 0x2A2E48),
+        surfaceElevated: DSColorPair(fixed: 0x151830),
+        textPrimary: DSColorPair(fixed: 0xF1F3FF),
+        textSecondary: DSColorPair(fixed: 0xAEB4D0),
+        textTertiary: DSColorPair(fixed: 0x6E7494),
+        separator: DSColorPair(fixed: 0x23273F),
+        success: DSColorPair(fixed: 0xF5C76A),
+        shadow: DSColorPair(fixed: 0x000000, alpha: 0.55)
+    )
+
+    /// 氷の結晶（雪の夜。氷のような青いガラス。いつも暗い）
+    static let rikka = ThemePalette(
+        background: DSColorPair(fixed: 0x0D1A3A),
+        surface: DSColorPair(fixed: 0x2A4272),
+        surfaceSunken: DSColorPair(fixed: 0x16264D),
+        segmentSelected: DSColorPair(fixed: 0x3A5590),
+        surfaceElevated: DSColorPair(fixed: 0x1B2E5A),
+        textPrimary: DSColorPair(fixed: 0xF4F8FF),
+        textSecondary: DSColorPair(fixed: 0xB9CCEC),
+        textTertiary: DSColorPair(fixed: 0x7A8FB8),
+        separator: DSColorPair(fixed: 0x2C406E),
+        success: DSColorPair(fixed: 0xBFE3FF),
+        shadow: DSColorPair(fixed: 0x000000, alpha: 0.5)
+    )
+
+    /// 水滴（深い水の中。青いガラス。いつも暗い）
+    static let water = ThemePalette(
+        background: DSColorPair(fixed: 0x0B1A36),
+        surface: DSColorPair(fixed: 0x24406E),
+        surfaceSunken: DSColorPair(fixed: 0x132A50),
+        segmentSelected: DSColorPair(fixed: 0x34578E),
+        surfaceElevated: DSColorPair(fixed: 0x183158),
+        textPrimary: DSColorPair(fixed: 0xF2F8FF),
+        textSecondary: DSColorPair(fixed: 0xB2CBEA),
+        textTertiary: DSColorPair(fixed: 0x7590B6),
+        separator: DSColorPair(fixed: 0x274470),
+        success: DSColorPair(fixed: 0x8FD8FF),
+        shadow: DSColorPair(fixed: 0x000000, alpha: 0.5)
+    )
+
     /// マーガレット（夜の草原。若葉色のすりガラス。いつも暗い）
     static let margaret = ThemePalette(
         background: DSColorPair(fixed: 0x10231C),
