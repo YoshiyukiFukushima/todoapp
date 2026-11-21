@@ -63,6 +63,8 @@
 				Shared/WidgetTaskQuery.swift,
 				Themes/Bubble/BubbleTokens.swift,
 				Themes/Bubble/BubbleViews.swift,
+				Themes/Flower/FlowerTokens.swift,
+				Themes/Flower/FlowerViews.swift,
 				Themes/ThemeStyle.swift,
 				Utilities/ColorExtensions.swift,
 				Utilities/ThemeManager.swift,

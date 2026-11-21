@@ -13,11 +13,13 @@
 
 import SwiftUI
 
-nonisolated enum ThemeStyle: Sendable {
+nonisolated enum ThemeStyle: Sendable, Equatable {
     /// ふつうの平らなカード
     case standard
     /// シャボン玉（ガラスのカード、泡のチェック、昇る泡）
     case bubble
+    /// 花（すりガラスのカード、咲くチェック、舞い落ちる花びら）。花の種類で色・形・速さが変わる
+    case flower(FlowerKind)
 }
 
 extension ThemeStyle {
@@ -25,7 +27,7 @@ extension ThemeStyle {
     var cardRadius: CGFloat {
         switch self {
         case .standard: DS.Radius.l
-        case .bubble: DS.Radius.bubbleCard
+        case .bubble, .flower: DS.Radius.bubbleCard
         }
     }
 
@@ -34,11 +36,21 @@ extension ThemeStyle {
         switch self {
         case .standard: DS.Size.checkbox
         case .bubble: DS.Size.bubbleCheckbox
+        case .flower: DS.Size.flowerCheckbox
         }
     }
 
     /// 完了したときに、画面全体に重ねる演出を使うか
-    var hasCompletionEffects: Bool { self == .bubble }
+    var hasCompletionEffects: Bool { self != .standard }
+
+    /// ガラスの面の色（平らなカードなら nil）
+    var glassTint: GlassTint? {
+        switch self {
+        case .standard: nil
+        case .bubble: .bubble
+        case .flower(let kind): kind.spec.glass
+        }
+    }
 }
 
 // MARK: - 画面の背景
@@ -54,6 +66,8 @@ struct DSScreenBackground: View {
             DS.Colors.background
         case .bubble:
             BubbleBackdrop(isAnimated: themeManager.animationsEnabled && !reduceMotion)
+        case .flower(let kind):
+            FlowerBackdrop(kind: kind, isAnimated: themeManager.animationsEnabled && !reduceMotion)
         }
     }
 }
@@ -89,8 +103,9 @@ struct DSSurface: View {
         switch style {
         case .standard:
             path.fill(DS.Colors.surface).dsShadow(elevation)
-        case .bubble:
-            BubbleGlass(shape: path, highlight: shape == .circle ? .spot : .bar, isDimmed: elevation == .none)
+        case .bubble, .flower:
+            BubbleGlass(shape: path, tint: style.glassTint ?? .bubble,
+                        highlight: shape == .circle ? .spot : .bar, isDimmed: elevation == .none)
         }
     }
 }

@@ -279,7 +279,7 @@ extension DS {
         static let l: CGFloat = 18
         /// シート・大きなカード
         static let xl: CGFloat = 26
-        /// 泡のテーマのタスクカード（1 行ならカプセルになる丸さ）
+        /// 泡・花のテーマのタスクカード（1 行ならカプセルになる丸さ）
         static let bubbleCard: CGFloat = 30
         // ボタン・チップは Capsule() を使う
     }
@@ -291,6 +291,8 @@ extension DS {
         static let checkbox: CGFloat = 26
         /// 泡のテーマのチェック（シャボン玉）
         static let bubbleCheckbox: CGFloat = 30
+        /// 花のテーマのチェック（つぼみ。咲くと花びらが外へ広がる）
+        static let flowerCheckbox: CGFloat = 28
         /// サイドバーのグループアイコン
         static let groupIcon: CGFloat = 44
         /// 編集中のサイドバーの小さなグループアイコン

@@ -115,6 +115,38 @@ nonisolated extension ThemePalette {
     )
 }
 
+nonisolated extension ThemePalette {
+    /// 桜（夜桜の庭。藤色のすりガラス。いつも暗い）
+    static let sakura = ThemePalette(
+        background: DSColorPair(fixed: 0x1D1322),
+        surface: DSColorPair(fixed: 0x4B3656),
+        surfaceSunken: DSColorPair(fixed: 0x2C1F33),
+        segmentSelected: DSColorPair(fixed: 0x5F4570),
+        surfaceElevated: DSColorPair(fixed: 0x33243C),
+        textPrimary: DSColorPair(fixed: 0xFFF5F9),
+        textSecondary: DSColorPair(fixed: 0xDCC3D3),
+        textTertiary: DSColorPair(fixed: 0x9E8295),
+        separator: DSColorPair(fixed: 0x48344F),
+        success: DSColorPair(fixed: 0xF5C76A),
+        shadow: DSColorPair(fixed: 0x000000, alpha: 0.5)
+    )
+
+    /// マーガレット（夜の草原。若葉色のすりガラス。いつも暗い）
+    static let margaret = ThemePalette(
+        background: DSColorPair(fixed: 0x10231C),
+        surface: DSColorPair(fixed: 0x2C4F40),
+        surfaceSunken: DSColorPair(fixed: 0x1A3329),
+        segmentSelected: DSColorPair(fixed: 0x3C6552),
+        surfaceElevated: DSColorPair(fixed: 0x1F3A2F),
+        textPrimary: DSColorPair(fixed: 0xF6FBF3),
+        textSecondary: DSColorPair(fixed: 0xC4D9C8),
+        textTertiary: DSColorPair(fixed: 0x86A391),
+        separator: DSColorPair(fixed: 0x2E4D3F),
+        success: DSColorPair(fixed: 0xF7C948),
+        shadow: DSColorPair(fixed: 0x000000, alpha: 0.5)
+    )
+}
+
 nonisolated extension UIColor {
     convenience init(rgb: UInt32, alpha: CGFloat = 1) {
         self.init(

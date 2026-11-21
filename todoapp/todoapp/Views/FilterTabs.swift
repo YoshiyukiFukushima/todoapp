@@ -53,7 +53,7 @@ struct FilterTabs: View {
         .background(DS.Colors.surfaceSunken, in: Capsule())
     }
 
-    /// 選んだタブのカプセル（泡のテーマではガラス）
+    /// 選んだタブのカプセル（泡・花のテーマではガラス）
     private struct SelectedTabSurface: View {
         @Environment(\.dsStyle) private var style
 
@@ -61,7 +61,7 @@ struct FilterTabs: View {
             switch style {
             case .standard:
                 Capsule().fill(DS.Colors.segmentSelected).dsShadow(.card)
-            case .bubble:
+            case .bubble, .flower:
                 DSSurface(shape: .capsule)
             }
         }

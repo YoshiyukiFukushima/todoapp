@@ -33,8 +33,8 @@ struct AddTaskButton: View {
         switch style {
         case .standard:
             Circle().fill(accent.fill).dsShadow(.floating)
-        case .bubble:
-            BubbleSphere(isFilled: true).dsShadow(.floating)
+        case .bubble, .flower:
+            BubbleSphere(isFilled: true, tint: style.glassTint ?? .bubble).dsShadow(.floating)
         }
     }
 }

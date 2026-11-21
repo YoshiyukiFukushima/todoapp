@@ -25,7 +25,7 @@ struct TaskRowView: View {
                 animationsEnabled: animationsEnabled,
                 action: onToggleComplete
             )
-            .padding(.leading, style == .bubble ? DS.Spacing.s : DS.Spacing.xs)
+            .padding(.leading, style.glassTint != nil ? DS.Spacing.s : DS.Spacing.xs)
             .padding(.top, DS.Spacing.xs)
 
             Button(action: onTap) {
