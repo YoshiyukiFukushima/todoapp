@@ -26,6 +26,7 @@ struct TaskListView: View {
     @Environment(\.dsStyle) private var style
     @Environment(BubbleEffects.self) private var bubbleEffects: BubbleEffects?
     @Environment(FlowerEffects.self) private var flowerEffects: FlowerEffects?
+    @Environment(WaterEffects.self) private var waterEffects: WaterEffects?
     @State private var taskPendingDelete: TodoTask?
     @State private var showDeleteConfirm = false
     @State private var manualExpandOverrides: [Int: Bool] = [:]
@@ -240,6 +241,7 @@ struct TaskListView: View {
         case .standard: break
         case .bubble: bubbleEffects?.celebrate()
         case .flower(let kind): flowerEffects?.celebrate(kind)
+        case .water: waterEffects?.celebrate()
         }
     }
 

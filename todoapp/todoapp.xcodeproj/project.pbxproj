@@ -65,6 +65,8 @@
 				Themes/Bubble/BubbleViews.swift,
 				Themes/Flower/FlowerTokens.swift,
 				Themes/Flower/FlowerViews.swift,
+				Themes/Water/WaterTokens.swift,
+				Themes/Water/WaterViews.swift,
 				Themes/ThemeStyle.swift,
 				Utilities/ColorExtensions.swift,
 				Utilities/ThemeManager.swift,

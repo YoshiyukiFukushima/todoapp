@@ -84,7 +84,7 @@ private struct ThemePicker: View {
     }
 }
 
-/// テーマの見本。モノクロは白と黒の半分ずつ、泡は水の中のシャボン玉、花は夜の庭に咲いた花
+/// テーマの見本。モノクロは白と黒の半分ずつ、泡は水の中のシャボン玉、花・結晶は咲いた形、水滴は水玉
 private struct ThemeSwatch: View {
     let theme: ColorTheme
     let isSelected: Bool
@@ -130,6 +130,18 @@ private struct ThemeSwatch: View {
                                              startPoint: .topLeading, endPoint: .bottomTrailing))
                 FlowerBlossom(kind: kind, progress: 1)
                     .frame(width: DS.Size.groupIcon * 0.4, height: DS.Size.groupIcon * 0.4)
+            }
+            .clipShape(Circle())
+        case .water:
+            ZStack {
+                Circle().fill(LinearGradient(colors: [DS.Water.glows[0], DS.Water.deepTop, DS.Water.glows[2]],
+                                             startPoint: .topLeading, endPoint: .bottomTrailing))
+                WaterBead(showsCheck: false)
+                    .frame(width: DS.Size.groupIcon * 0.46, height: DS.Size.groupIcon * 0.46)
+                    .offset(x: -DS.Size.groupIcon * 0.06, y: DS.Size.groupIcon * 0.06)
+                WaterBead(showsCheck: false)
+                    .frame(width: DS.Size.groupIcon * 0.2, height: DS.Size.groupIcon * 0.2)
+                    .offset(x: DS.Size.groupIcon * 0.2, y: -DS.Size.groupIcon * 0.18)
             }
             .clipShape(Circle())
         case .standard:

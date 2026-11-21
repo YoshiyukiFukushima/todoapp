@@ -44,6 +44,8 @@ struct TaskWidgetBackground: View {
             BubbleBackdrop(isAnimated: false)
         case .flower(let kind):
             FlowerBackdrop(kind: kind, isAnimated: false)
+        case .water:
+            WaterBackdrop(isAnimated: false)
         }
     }
 }
@@ -245,6 +247,12 @@ struct WidgetCheckFace: View {
                         .font(DS.Typography.iconSmall)
                         .foregroundStyle(accent.onFill)
                 }
+            }
+        case .water:
+            if isCompleted {
+                WaterBead()
+            } else {
+                BubbleSphere(isFilled: false, tint: DS.Water.glass)
             }
         case .flower(let kind):
             // 咲いた花は外へ広がるので、行からはみ出しすぎないよう少し小さく描く

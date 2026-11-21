@@ -16,6 +16,7 @@ struct TaskRowView: View {
 
     @Environment(\.dsStyle) private var style
     @Environment(BubbleEffects.self) private var bubbleEffects: BubbleEffects?
+    @Environment(\.accessibilityReduceMotion) private var reduceMotion
 
     var body: some View {
         HStack(alignment: .top, spacing: 0) {
@@ -37,6 +38,13 @@ struct TaskRowView: View {
             }
             .buttonStyle(.plain)
             .accessibilityHint("詳細を開く")
+        }
+        // 水滴のテーマ：終えたカードの下半分に水がたまる（ガラスの上、文字の下）
+        .background {
+            if style == .water {
+                WaterPool(isFilled: task.isCompleted, isAnimated: animationsEnabled && !reduceMotion)
+                    .clipShape(RoundedRectangle(cornerRadius: style.cardRadius, style: .continuous))
+            }
         }
         .dsSurface(.card, elevation: task.isCompleted ? .none : .card)
         // 全部終わったときに、このカードから泡をあふれさせるため位置を知らせる

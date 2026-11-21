@@ -15,6 +15,8 @@ nonisolated enum FlowerKind: Sendable, Equatable {
     case sakura
     /// マーガレット：白く細長い花びらがたくさん、大きな黄色い花芯。夜の草原
     case margaret
+    /// 六花（氷の結晶）：6 本の枝がくるっと回りながら広がり、先がきらっと光る。雪の夜
+    case rikka
 }
 
 /// 花びらの形
@@ -23,6 +25,8 @@ enum PetalStyle {
     case notched
     /// 細長く、先が丸い（マーガレット）
     case slender
+    /// 枝分かれした氷の腕。塗らずに線で描く（六花）
+    case crystal
 }
 
 /// 1 種類の花の、色・形・動き
@@ -76,6 +80,8 @@ struct FlowerSpec {
     let bloomDuration: TimeInterval
     /// チェックを外したとき、花びらが逆の順で閉じる時間
     let closeDuration: TimeInterval
+    /// 咲ききる直前に、花びらの先がきらっと光るか
+    var tipSparkle = false
     /// 咲いたあと舞い落ちる花びらの数
     let shedCount: ClosedRange<Int>
     /// 舞い落ちる花びらの大きさ（px）。降ってくるときと背景
@@ -90,6 +96,7 @@ extension FlowerKind {
         switch self {
         case .sakura: .sakura
         case .margaret: .margaret
+        case .rikka: .rikka
         }
     }
 }
@@ -166,6 +173,47 @@ extension FlowerSpec {
         closeDuration: 0.5,
         shedCount: 4...5,
         fallingSize: 11...19
+    )
+}
+
+extension FlowerSpec {
+    /// 六花は 6 本がほぼ同時に、くるっと 1 回転近く回りながら広がる。こぼれ落ちるのは花びらでなく小さな雪
+    static let rikka = FlowerSpec(
+        petalCount: 6,
+        petalStyle: .crystal,
+        petalLength: 0.74,
+        petalWidth: 0.5,
+        petalInset: 0,
+        stamenSize: 0.62,
+        stagger: 0.02,
+        span: 0.72,
+        twist: 0,
+        swirl: -300,
+        petalTip: Color(fixed: 0xFFFFFF),
+        petalBase: Color(fixed: 0xE6F2FF),
+        petalVein: Color(fixed: 0xBFDFFF),
+        petalEdge: Color(fixed: 0x9CC8FF),
+        petalShades: [Color(fixed: 0xFFFFFF), Color(fixed: 0xEAF4FF), Color(fixed: 0xD6EAFF), Color(fixed: 0xF4F9FF)],
+        // 花芯は白い腕と見分けがつくよう、青みのあるガラスの玉にする
+        stamenLight: Color(fixed: 0xF2F8FF),
+        stamenMid: Color(fixed: 0xAFCBF2),
+        stamenDeep: Color(fixed: 0x5F86C8),
+        checkmark: Color(fixed: 0x1F3B70),
+        glass: GlassTint(
+            glassTop: Color(fixed: 0x7FA6E6).opacity(0.45), glassBottom: Color(fixed: 0x2B4374).opacity(0.5),
+            sphereTint: Color(fixed: 0xCFE4FF), sphereEdge: Color(fixed: 0x2A4579),
+            filledLight: Color(fixed: 0xDDEEFF), filledMid: Color(fixed: 0x6FA6F0), filledDeep: Color(fixed: 0x2D5DB8)
+        ),
+        deepTop: Color(fixed: 0x132451),
+        deepBottom: Color(fixed: 0x070D21),
+        glows: [Color(fixed: 0x2F7BFF), Color(fixed: 0x6E7BFF), Color(fixed: 0x56C8F0)],
+        squeeze: 0.14,
+        bloomDelay: 0.18,
+        bloomDuration: 0.95,
+        closeDuration: 0.5,
+        tipSparkle: true,
+        shedCount: 5...7,
+        fallingSize: 4...9
     )
 }
 

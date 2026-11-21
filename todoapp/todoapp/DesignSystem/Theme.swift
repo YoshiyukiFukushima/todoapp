@@ -25,6 +25,10 @@ nonisolated enum ColorTheme: String, CaseIterable, Identifiable, Sendable {
     case sakura
     /// マーガレット。夜の草原で、チェックすると白い花が咲く。いつも暗い
     case margaret
+    /// 氷の結晶（六花）。雪の夜で、チェックすると結晶が回りながら広がる。いつも暗い
+    case rikka
+    /// 水滴。深い水の中で、しずくが落ちて水玉になり、カードに水がたまる。いつも暗い
+    case water
 
     var id: String { rawValue }
 
@@ -37,6 +41,8 @@ nonisolated enum ColorTheme: String, CaseIterable, Identifiable, Sendable {
         case .bubble: .bubble
         case .sakura: .sakura
         case .margaret: .margaret
+        case .rikka: .rikka
+        case .water: .water
         default: .warm
         }
     }
@@ -47,6 +53,8 @@ nonisolated enum ColorTheme: String, CaseIterable, Identifiable, Sendable {
         case .bubble: .bubble
         case .sakura: .flower(.sakura)
         case .margaret: .flower(.margaret)
+        case .rikka: .flower(.rikka)
+        case .water: .water
         default: .standard
         }
     }
@@ -55,7 +63,7 @@ nonisolated enum ColorTheme: String, CaseIterable, Identifiable, Sendable {
     var fixedInterfaceStyle: UIUserInterfaceStyle? {
         switch style {
         case .standard: nil
-        case .bubble, .flower: .dark
+        case .bubble, .flower, .water: .dark
         }
     }
 
@@ -70,6 +78,8 @@ extension ColorTheme {
         case .bubble: "泡"
         case .sakura: "桜"
         case .margaret: "マーガレット"
+        case .rikka: "結晶"
+        case .water: "水滴"
         default: accent.displayName
         }
     }
@@ -89,6 +99,8 @@ extension ColorTheme {
         case .bubble: .sky
         case .sakura: .berry
         case .margaret: .leaf
+        case .rikka: .sky
+        case .water: .sky
         }
     }
 }

@@ -33,6 +33,7 @@ struct ContentView: View {
     /// 泡のテーマの、はじける演出（画面全体に重ねて描く）
     @State private var bubbleEffects = BubbleEffects()
     @State private var flowerEffects = FlowerEffects()
+    @State private var waterEffects = WaterEffects()
 
     private var taskViewModel: TaskViewModel { TaskViewModel(modelContext: modelContext) }
     private var groupViewModel: GroupViewModel { GroupViewModel(modelContext: modelContext) }
@@ -141,10 +142,12 @@ struct ContentView: View {
             case .standard: EmptyView()
             case .bubble: BubbleEffectsLayer(effects: bubbleEffects)
             case .flower: FlowerEffectsLayer(effects: flowerEffects)
+            case .water: WaterEffectsLayer(effects: waterEffects)
             }
         }
         .environment(bubbleEffects)
         .environment(flowerEffects)
+        .environment(waterEffects)
         .dsRoot(theme: theme)
         .dsApplyThemeToWindows(theme)
         .onAppear(perform: seedDefaultGroupIfNeeded)

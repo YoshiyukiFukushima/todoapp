@@ -20,6 +20,8 @@ nonisolated enum ThemeStyle: Sendable, Equatable {
     case bubble
     /// 花（すりガラスのカード、咲くチェック、舞い落ちる花びら）。花の種類で色・形・速さが変わる
     case flower(FlowerKind)
+    /// 水滴（青いガラスのカード、しずくが落ちて水玉になり、カードに水がたまる）
+    case water
 }
 
 extension ThemeStyle {
@@ -27,7 +29,7 @@ extension ThemeStyle {
     var cardRadius: CGFloat {
         switch self {
         case .standard: DS.Radius.l
-        case .bubble, .flower: DS.Radius.bubbleCard
+        case .bubble, .flower, .water: DS.Radius.bubbleCard
         }
     }
 
@@ -37,6 +39,7 @@ extension ThemeStyle {
         case .standard: DS.Size.checkbox
         case .bubble: DS.Size.bubbleCheckbox
         case .flower: DS.Size.flowerCheckbox
+        case .water: DS.Size.bubbleCheckbox
         }
     }
 
@@ -49,6 +52,7 @@ extension ThemeStyle {
         case .standard: nil
         case .bubble: .bubble
         case .flower(let kind): kind.spec.glass
+        case .water: DS.Water.glass
         }
     }
 }
@@ -68,6 +72,8 @@ struct DSScreenBackground: View {
             BubbleBackdrop(isAnimated: themeManager.animationsEnabled && !reduceMotion)
         case .flower(let kind):
             FlowerBackdrop(kind: kind, isAnimated: themeManager.animationsEnabled && !reduceMotion)
+        case .water:
+            WaterBackdrop(isAnimated: themeManager.animationsEnabled && !reduceMotion)
         }
     }
 }
@@ -103,7 +109,7 @@ struct DSSurface: View {
         switch style {
         case .standard:
             path.fill(DS.Colors.surface).dsShadow(elevation)
-        case .bubble, .flower:
+        case .bubble, .flower, .water:
             BubbleGlass(shape: path, tint: style.glassTint ?? .bubble,
                         highlight: shape == .circle ? .spot : .bar, isDimmed: elevation == .none)
         }
