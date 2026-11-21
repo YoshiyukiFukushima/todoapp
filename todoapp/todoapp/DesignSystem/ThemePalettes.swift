@@ -267,6 +267,81 @@ nonisolated extension ThemePalette {
         success: DSColorPair(fixed: 0xFFD54A),
         shadow: DSColorPair(fixed: 0x000000, alpha: 0.5)
     )
+
+    /// 風船（夕暮れの空。ラベンダーのガラス。いつも暗い）
+    static let balloon = ThemePalette(
+        background: DSColorPair(fixed: 0x1F2140),
+        surface: DSColorPair(fixed: 0x3C3A62),
+        surfaceSunken: DSColorPair(fixed: 0x2A2A4A),
+        segmentSelected: DSColorPair(fixed: 0x4D4A75),
+        surfaceElevated: DSColorPair(fixed: 0x2E2D52),
+        textPrimary: DSColorPair(fixed: 0xFAF7FF),
+        textSecondary: DSColorPair(fixed: 0xD2CCE6),
+        textTertiary: DSColorPair(fixed: 0x958EB0),
+        separator: DSColorPair(fixed: 0x3C3A62),
+        success: DSColorPair(fixed: 0xF0524A),
+        shadow: DSColorPair(fixed: 0x000000, alpha: 0.5)
+    )
+
+    /// ゼリー（夜のガラスの器。青みのガラス。いつも暗い）
+    static let jelly = ThemePalette(
+        background: DSColorPair(fixed: 0x161C34),
+        surface: DSColorPair(fixed: 0x343E62),
+        surfaceSunken: DSColorPair(fixed: 0x232A48),
+        segmentSelected: DSColorPair(fixed: 0x454F76),
+        surfaceElevated: DSColorPair(fixed: 0x282F50),
+        textPrimary: DSColorPair(fixed: 0xF6F8FF),
+        textSecondary: DSColorPair(fixed: 0xC8D0E6),
+        textTertiary: DSColorPair(fixed: 0x8C95B4),
+        separator: DSColorPair(fixed: 0x343E62),
+        success: DSColorPair(fixed: 0x9B5DE5),
+        shadow: DSColorPair(fixed: 0x000000, alpha: 0.5)
+    )
+
+    /// 紙飛行機（夜明け前の空。空色のガラス。いつも暗い）
+    static let paperPlane = ThemePalette(
+        background: DSColorPair(fixed: 0x121D36),
+        surface: DSColorPair(fixed: 0x2E3F64),
+        surfaceSunken: DSColorPair(fixed: 0x1D2A48),
+        segmentSelected: DSColorPair(fixed: 0x3E5078),
+        surfaceElevated: DSColorPair(fixed: 0x22304F),
+        textPrimary: DSColorPair(fixed: 0xF5F8FF),
+        textSecondary: DSColorPair(fixed: 0xC6D2EA),
+        textTertiary: DSColorPair(fixed: 0x8796B8),
+        separator: DSColorPair(fixed: 0x2E3F64),
+        success: DSColorPair(fixed: 0x5B8DEF),
+        shadow: DSColorPair(fixed: 0x000000, alpha: 0.5)
+    )
+
+    /// ししおどし（月夜の庭。苔色のガラス。いつも暗い）
+    static let shishiOdoshi = ThemePalette(
+        background: DSColorPair(fixed: 0x0F1C1A),
+        surface: DSColorPair(fixed: 0x2C4440),
+        surfaceSunken: DSColorPair(fixed: 0x1B2D2A),
+        segmentSelected: DSColorPair(fixed: 0x3A5651),
+        surfaceElevated: DSColorPair(fixed: 0x20332F),
+        textPrimary: DSColorPair(fixed: 0xF2F7F0),
+        textSecondary: DSColorPair(fixed: 0xC4D4C6),
+        textTertiary: DSColorPair(fixed: 0x879C8C),
+        separator: DSColorPair(fixed: 0x2C4440),
+        success: DSColorPair(fixed: 0x6FA35A),
+        shadow: DSColorPair(fixed: 0x000000, alpha: 0.55)
+    )
+
+    /// ちょうちょ（夕暮れの野原。すみれ色のガラス。いつも暗い）
+    static let butterfly = ThemePalette(
+        background: DSColorPair(fixed: 0x1A1F33),
+        surface: DSColorPair(fixed: 0x3A3C5E),
+        surfaceSunken: DSColorPair(fixed: 0x262A44),
+        segmentSelected: DSColorPair(fixed: 0x4A4D72),
+        surfaceElevated: DSColorPair(fixed: 0x2B2E4C),
+        textPrimary: DSColorPair(fixed: 0xFAF8FF),
+        textSecondary: DSColorPair(fixed: 0xD3CFE6),
+        textTertiary: DSColorPair(fixed: 0x958FB0),
+        separator: DSColorPair(fixed: 0x3A3C5E),
+        success: DSColorPair(fixed: 0x9B87E0),
+        shadow: DSColorPair(fixed: 0x000000, alpha: 0.5)
+    )
 }
 
 nonisolated extension UIColor {

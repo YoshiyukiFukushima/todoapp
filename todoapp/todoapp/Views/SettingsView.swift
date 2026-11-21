@@ -200,6 +200,60 @@ private struct ThemeSwatch: View {
                     .offset(x: DS.Size.groupIcon * 0.22, y: DS.Size.groupIcon * 0.2)
             }
             .clipShape(Circle())
+        case .balloon:
+            ZStack {
+                Circle().fill(LinearGradient(colors: [DS.Balloon.glows[0].0, DS.Balloon.deepTop, DS.Balloon.glows[2].0],
+                                             startPoint: .topLeading, endPoint: .bottomTrailing))
+                BalloonBody(color: BalloonColor.all[0])
+                    .frame(width: DS.Size.groupIcon * 0.4, height: DS.Size.groupIcon * 0.5)
+                    .offset(y: -DS.Size.groupIcon * 0.04)
+            }
+            .clipShape(Circle())
+        case .jelly:
+            ZStack {
+                Circle().fill(LinearGradient(colors: [DS.Jelly.glows[0].0, DS.Jelly.deepTop, DS.Jelly.glows[2].0],
+                                             startPoint: .topLeading, endPoint: .bottomTrailing))
+                JellyCheck(isCompleted: false, flavor: .orange, isAnimated: false)
+                    .overlay {
+                        JellyShape()
+                            .fill(LinearGradient(colors: [JellyFlavor.orange.light, JellyFlavor.orange.mid],
+                                                 startPoint: .top, endPoint: .bottom))
+                            .opacity(0.85)
+                    }
+                    .frame(width: DS.Size.groupIcon * 0.56, height: DS.Size.groupIcon * 0.56)
+            }
+            .clipShape(Circle())
+        case .paperPlane:
+            ZStack {
+                Circle().fill(LinearGradient(colors: [DS.PaperPlane.glows[0].0, DS.PaperPlane.deepBottom],
+                                             startPoint: .topTrailing, endPoint: .bottomLeading))
+                Canvas { context, size in
+                    let side = min(size.width, size.height)
+                    var trail = Path()
+                    trail.move(to: CGPoint(x: side * 0.12, y: side * 0.82))
+                    trail.addQuadCurve(to: CGPoint(x: side * 0.46, y: side * 0.56), control: CGPoint(x: side * 0.2, y: side * 0.5))
+                    context.stroke(trail, with: .color(DS.PaperPlane.trail.opacity(0.8)),
+                                   style: StrokeStyle(lineWidth: 1, lineCap: .round, dash: [1.5, 3]))
+                    let points = PaperPlaneForm.place(PaperPlaneForm.plane, center: CGPoint(x: side * 0.58, y: side * 0.44),
+                                                      side: side * 0.5, angle: -0.6)
+                    PaperPlaneForm.draw(points, fold: 1, in: context, lineWidth: 0.7)
+                }
+            }
+            .clipShape(Circle())
+        case .shishiOdoshi:
+            ShishiScene(progress: 0)
+                .background(Circle().fill(LinearGradient(colors: [DS.Shishi.glows[2].0, DS.Shishi.deepBottom],
+                                                         startPoint: .top, endPoint: .bottom)))
+                .clipShape(Circle())
+        case .butterfly:
+            ZStack {
+                Circle().fill(LinearGradient(colors: [DS.Butterfly.glows[0].0, DS.Butterfly.deepTop, DS.Butterfly.glows[2].0],
+                                             startPoint: .topLeading, endPoint: .bottomTrailing))
+                ButterflyView(palette: ButterflyPalette.all[0])
+                    .frame(width: DS.Size.groupIcon * 0.62, height: DS.Size.groupIcon * 0.62)
+                    .rotationEffect(.degrees(-12))
+            }
+            .clipShape(Circle())
         case .standard:
             if theme.isMonochrome {
                 ZStack {

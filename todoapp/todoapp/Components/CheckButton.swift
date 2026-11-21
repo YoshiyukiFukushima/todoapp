@@ -15,7 +15,12 @@
 //  - cat: ねこの手が下から伸びてきて、気まぐれな向き・ずれで肉球のスタンプを押す（ねこの手は CatEffects が描く）
 //  - fireworks: 玉がきゅっと縮んで、光の筋が放射状に開く（花火は FireworksEffects が描く）
 //  - chick: 卵が揺れて割れ、ひよこが生まれる（殻のかけらは ChickEffects が描く）
-//  ねこ・花火・ひよこは、完了しても行の中でチェックだけは薄くしない（TaskRowView）
+//  - balloon: 風船がぐらぐら揺れながらふくらみ、パンッと割れる（破片・紙吹雪・ひもは BalloonEffects が描く）
+//  - jelly: ぎゅっとつぶれてから、ぷるんぷるん揺れて止まる。揺れるあいだに色に染まる（カードも TaskRowView で少し揺れる）
+//  - paperPlane: 紙が折りたたまれて紙飛行機になり、少し沈む（飛んでいくのは PaperPlaneEffects が描く）
+//  - shishiOdoshi: 水がたまって傾き、戻って石を打つ（「カコーン」は ShishiEffects が鳴らす）
+//  - butterfly: さなぎが割れて羽化する（カードの右端へ飛んでとまるのは TaskRowView の ButterflyPerch）
+//  ねこ・花火・ひよこ・ゼリー・ししおどし・ちょうちょは、完了しても行の中でチェックだけは薄くしない（TaskRowView）
 //
 
 import SwiftUI
@@ -42,12 +47,17 @@ struct CheckButton: View {
     @Environment(CatEffects.self) private var catEffects: CatEffects?
     @Environment(FireworksEffects.self) private var fireworksEffects: FireworksEffects?
     @Environment(ChickEffects.self) private var chickEffects: ChickEffects?
+    @Environment(BalloonEffects.self) private var balloonEffects: BalloonEffects?
+    @Environment(PaperPlaneEffects.self) private var paperPlaneEffects: PaperPlaneEffects?
+    @Environment(ShishiEffects.self) private var shishiEffects: ShishiEffects?
     @State private var bounceTrigger = 0
     @State private var globalFrame: CGRect = .zero
     /// 泡がはじける・しずくが当たるまでは、未完了の見た目のまま見せる
     @State private var isPopping = false
 
     var body: some View {
+        // ゼリーは器に乗っているので、下を支点にしてつぶれる（アニメーションの中で使うので先に決めておく）
+        let squashAnchor: UnitPoint = style == .jelly ? .bottom : .center
         Button {
             let willComplete = !isCompleted
             action()
@@ -91,6 +101,15 @@ struct CheckButton: View {
                 fireworksEffects?.burst(at: center, radius: globalFrame.width / 2, color: FireworkColor.pick(seed: seed))
             case .chick:
                 chickEffects?.hatch(at: center, size: globalFrame.width)
+            case .balloon:
+                balloonEffects?.pop(at: center, size: globalFrame.width, color: BalloonColor.pick(seed: seed))
+            case .paperPlane:
+                paperPlaneEffects?.launch(from: center, size: globalFrame.width)
+            case .shishiOdoshi:
+                shishiEffects?.knock(at: center, size: globalFrame.width)
+            // ゼリーはチェックとカードの揺れだけ。ちょうちょはカードの上（ButterflyPerch）で飛ぶ
+            case .jelly, .butterfly:
+                break
             }
         } label: {
             CheckMarkFace(style: style, isCompleted: isCompleted && !isPopping,
@@ -105,7 +124,7 @@ struct CheckButton: View {
                 }
                 .onGeometryChange(for: CGRect.self) { $0.frame(in: .global) } action: { globalFrame = $0 }
                 .keyframeAnimator(initialValue: CheckScale(), trigger: bounceTrigger) { content, scale in
-                    content.scaleEffect(x: scale.x, y: scale.y)
+                    content.scaleEffect(x: scale.x, y: scale.y, anchor: squashAnchor)
                 } keyframes: { _ in
                     KeyframeTrack(\.x) { widthKeyframes }
                     KeyframeTrack(\.y) { heightKeyframes }
@@ -134,6 +153,15 @@ struct CheckButton: View {
             CubicKeyframe(1.1, duration: 0.11)
             CubicKeyframe(0.96, duration: 0.1)
             SpringKeyframe(1.0, duration: 0.2)
+        case .jelly:
+            // ぎゅっと横に広がってつぶれる → ぷるんぷるんと何度も揺れて止まる
+            CubicKeyframe(1.3, duration: 0.09)
+            CubicKeyframe(0.84, duration: 0.13)
+            CubicKeyframe(1.16, duration: 0.13)
+            CubicKeyframe(0.92, duration: 0.13)
+            CubicKeyframe(1.07, duration: 0.13)
+            CubicKeyframe(0.97, duration: 0.13)
+            SpringKeyframe(1.0, duration: 0.2)
         default:
             uniformKeyframes
         }
@@ -148,6 +176,14 @@ struct CheckButton: View {
             CubicKeyframe(1.14, duration: 0.12)
             CubicKeyframe(0.92, duration: 0.11)
             CubicKeyframe(1.04, duration: 0.1)
+            SpringKeyframe(1.0, duration: 0.2)
+        case .jelly:
+            CubicKeyframe(0.68, duration: 0.09)
+            CubicKeyframe(1.18, duration: 0.13)
+            CubicKeyframe(0.88, duration: 0.13)
+            CubicKeyframe(1.08, duration: 0.13)
+            CubicKeyframe(0.95, duration: 0.13)
+            CubicKeyframe(1.02, duration: 0.13)
             SpringKeyframe(1.0, duration: 0.2)
         default:
             uniformKeyframes
@@ -197,7 +233,13 @@ struct CheckButton: View {
             CubicKeyframe(1.0, duration: DS.Chick.hatchDuration * DS.Chick.splitAt)
             CubicKeyframe(1.12, duration: 0.12)
             SpringKeyframe(1.0, duration: 0.4, spring: .bouncy)
-        case .water, .candle:
+        case .balloon:
+            // 割れるまでは待つ → 割れた反動で、きゅっと縮んで戻る
+            LinearKeyframe(1.0, duration: DS.Balloon.popDelay)
+            CubicKeyframe(0.8, duration: 0.05)
+            SpringKeyframe(1.0, duration: 0.3, spring: .bouncy)
+        case .water, .candle, .jelly, .paperPlane, .shishiOdoshi, .butterfly:
+            // 動きはチェックの中で描く
             LinearKeyframe(1.0, duration: 0.01)
         }
     }
@@ -272,6 +314,16 @@ private struct CheckMarkFace: View {
             FireworkCheck(isCompleted: isCompleted, color: FireworkColor.pick(seed: seed), isAnimated: isAnimated)
         case .chick:
             ChickCheck(isCompleted: isCompleted, isAnimated: isAnimated)
+        case .balloon:
+            BalloonCheck(isCompleted: isCompleted, color: BalloonColor.pick(seed: seed), isAnimated: isAnimated)
+        case .jelly:
+            JellyCheck(isCompleted: isCompleted, flavor: JellyFlavor.pick(seed: seed), isAnimated: isAnimated)
+        case .paperPlane:
+            PaperPlaneCheck(isCompleted: isCompleted, isAnimated: isAnimated)
+        case .shishiOdoshi:
+            ShishiCheck(isCompleted: isCompleted, isAnimated: isAnimated)
+        case .butterfly:
+            ButterflyCheck(isCompleted: isCompleted, palette: ButterflyPalette.pick(seed: seed), isAnimated: isAnimated)
         }
     }
 

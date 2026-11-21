@@ -52,7 +52,7 @@ struct TaskWidgetBackground: View {
             CandleBackdrop()
         case .constellation:
             StarfieldBackdrop(isAnimated: false)
-        case .cat, .fireworks, .chick:
+        case .cat, .fireworks, .chick, .balloon, .jelly, .paperPlane, .shishiOdoshi, .butterfly:
             NightBackdrop(style: theme.style, isAnimated: false)
         }
     }
@@ -234,7 +234,7 @@ struct WidgetCheckFace: View {
     let isCompleted: Bool
     let style: ThemeStyle
     let accent: DS.Accent
-    /// タスクごとに決まったでたらめの種（肉球の向き・花火の色）
+    /// タスクごとに決まったでたらめの種（肉球の向き・花火・風船・ゼリー・ちょうちょの色）
     var seed: UInt64 = 0
 
     var body: some View {
@@ -285,6 +285,18 @@ struct WidgetCheckFace: View {
             FireworkCheck(isCompleted: isCompleted, color: FireworkColor.pick(seed: seed), isAnimated: false)
         case .chick:
             ChickCheck(isCompleted: isCompleted, isAnimated: false)
+        case .balloon:
+            BalloonCheck(isCompleted: isCompleted, color: BalloonColor.pick(seed: seed), isAnimated: false)
+        case .jelly:
+            JellyCheck(isCompleted: isCompleted, flavor: JellyFlavor.pick(seed: seed), isAnimated: false)
+        case .paperPlane:
+            PaperPlaneCheck(isCompleted: isCompleted, isAnimated: false)
+        case .shishiOdoshi:
+            ShishiCheck(isCompleted: isCompleted, isAnimated: false)
+        case .butterfly:
+            // ウィジェットにはカードの右端がないので、ちょうちょはチェックの中にとまる
+            ButterflyCheck(isCompleted: isCompleted, palette: ButterflyPalette.pick(seed: seed),
+                           isAnimated: false, keepsButterfly: true)
         }
     }
 }

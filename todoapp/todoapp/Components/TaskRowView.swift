@@ -16,9 +16,14 @@ struct TaskRowView: View {
 
     @Environment(\.dsStyle) private var style
     @Environment(BubbleEffects.self) private var bubbleEffects: BubbleEffects?
+    @Environment(ButterflyEffects.self) private var butterflyEffects: ButterflyEffects?
     @Environment(\.accessibilityReduceMotion) private var reduceMotion
     @State private var sinkTrigger = 0
-    /// カードの画面上の位置（ねこの手がカードの中だけに見えるようにする）
+    /// ゼリーのテーマ：チェックしたとき、カードも少しぷるんと揺らす
+    @State private var jellyTrigger = 0
+    /// ちょうちょのテーマ：チェックした時刻（ちょうちょがチェックから飛んできてとまる）。nil ならはじめからとまっている
+    @State private var butterflyFlightStart: Date?
+    /// カードの画面上の位置（ねこの手がカードの中だけに見えるようにする・ちょうちょが飛び立つ場所）
     @State private var cardFrame: CGRect = .zero
 
     /// 肉球の向き・花火の色を決める種（タスクごとに決まる。ウィジェットとも同じになる）
@@ -37,7 +42,7 @@ struct TaskRowView: View {
                 cardFrame: cardFrame,
                 action: onToggleComplete
             )
-            // ねこ・花火・ひよこは、チェックの絵（肉球・花火の玉・ひよこ）が主役なので薄くしない
+            // ねこ・花火・ひよこ・ゼリー・ししおどし・ちょうちょは、チェックの絵が主役なので薄くしない
             .opacity(style.keepsCheckBright ? 1 : rowOpacity)
             .padding(.leading, style.glassTint != nil ? DS.Spacing.s : DS.Spacing.xs)
             .padding(.top, DS.Spacing.xs)
@@ -45,7 +50,8 @@ struct TaskRowView: View {
             Button(action: onTap) {
                 TaskRowContent(task: task, showsGroup: showsGroup)
                     .padding(.vertical, DS.Spacing.m)
-                    .padding(.trailing, DS.Spacing.l)
+                    // ちょうちょのテーマでは、右端にとまるちょうちょの分をあける
+                    .padding(.trailing, style == .butterfly ? DS.Spacing.l + DS.Butterfly.perchSize : DS.Spacing.l)
                     .frame(maxWidth: .infinity, alignment: .leading)
                     .contentShape(Rectangle())
             }
@@ -75,10 +81,17 @@ struct TaskRowView: View {
             DSSurface(shape: .card, elevation: task.isCompleted ? .none : .card)
                 .opacity(rowOpacity)
         }
+        // ちょうちょのテーマ：終えたカードの右端に、ちょうちょがとまる（薄くしない）
+        .overlay {
+            if style == .butterfly, task.isCompleted {
+                ButterflyPerch(palette: ButterflyPalette.pick(seed: seed), flightStart: butterflyFlightStart,
+                               from: checkCenter, isAnimated: isAnimated, phase: Double(seed % 1000) / 1000)
+            }
+        }
         // 全部終わったときに、このカードから泡をあふれさせるため位置を知らせる
         .onGeometryChange(for: CGRect.self) { $0.frame(in: .global) } action: { frame in
             if style.hasCompletionEffects { bubbleEffects?.updateCardFrame(frame, for: task.id) }
-            if style == .cat { cardFrame = frame }
+            if style == .cat || style == .butterfly { cardFrame = frame }
         }
         .onDisappear { bubbleEffects?.removeCardFrame(for: task.id) }
         // 判子のテーマ：判子が紙に当たった瞬間、カードがぐっと沈む
@@ -89,8 +102,38 @@ struct TaskRowView: View {
             CubicKeyframe(DS.Stamp.sinkDepth, duration: 0.05)
             SpringKeyframe(0, duration: 0.35, spring: .bouncy)
         }
+        // ゼリーのテーマ：チェックのぷるんに合わせて、カード全体も少しだけ揺れる（下を支点に）
+        .keyframeAnimator(initialValue: CardWobble(), trigger: jellyTrigger) { content, wobble in
+            content.scaleEffect(x: wobble.x, y: wobble.y, anchor: .bottom)
+        } keyframes: { _ in
+            KeyframeTrack(\.x) {
+                CubicKeyframe(1.018, duration: 0.1)
+                CubicKeyframe(0.99, duration: 0.14)
+                CubicKeyframe(1.008, duration: 0.14)
+                CubicKeyframe(0.997, duration: 0.14)
+                SpringKeyframe(1, duration: 0.2)
+            }
+            KeyframeTrack(\.y) {
+                CubicKeyframe(0.97, duration: 0.1)
+                CubicKeyframe(1.014, duration: 0.14)
+                CubicKeyframe(0.992, duration: 0.14)
+                CubicKeyframe(1.004, duration: 0.14)
+                SpringKeyframe(1, duration: 0.2)
+            }
+        }
         .onChange(of: task.isCompleted) { _, isCompleted in
             if isCompleted, style == .stamp, isAnimated { sinkTrigger += 1 }
+            if isCompleted, style == .jelly, isAnimated { jellyTrigger += 1 }
+            if style == .butterfly {
+                if isCompleted {
+                    butterflyFlightStart = isAnimated ? .now : nil
+                } else if isAnimated, !cardFrame.isEmpty {
+                    // チェックを外したら、とまっていたちょうちょが飛んでいく
+                    butterflyEffects?.flyAway(
+                        from: CGPoint(x: cardFrame.maxX - DS.Butterfly.perchInset, y: cardFrame.midY),
+                        palette: ButterflyPalette.pick(seed: seed))
+                }
+            }
         }
         .animation(fadeOutOnComplete ? DS.Motion.fade : nil, value: task.isCompleted)
     }
@@ -104,6 +147,18 @@ struct TaskRowView: View {
 
     /// 今の行の薄さ（終えた行だけ薄くする）
     private var rowOpacity: Double { task.isCompleted ? completedOpacity : 1 }
+
+    /// チェックのまん中（カードの中の座標）。ちょうちょはここから飛び立つ
+    private var checkCenter: CGPoint {
+        let leading = style.glassTint != nil ? DS.Spacing.s : DS.Spacing.xs
+        return CGPoint(x: leading + DS.Size.minTapTarget / 2, y: DS.Spacing.xs + DS.Size.minTapTarget / 2)
+    }
+}
+
+/// カードの縦横の伸び縮み（ゼリーのテーマ）
+private struct CardWobble {
+    var x: CGFloat = 1
+    var y: CGFloat = 1
 }
 
 /// タイトル・期限と繰り返し・メモ
