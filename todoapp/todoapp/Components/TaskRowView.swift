@@ -17,6 +17,7 @@ struct TaskRowView: View {
     @Environment(\.dsStyle) private var style
     @Environment(BubbleEffects.self) private var bubbleEffects: BubbleEffects?
     @Environment(\.accessibilityReduceMotion) private var reduceMotion
+    @State private var sinkTrigger = 0
 
     var body: some View {
         HStack(alignment: .top, spacing: 0) {
@@ -40,10 +41,18 @@ struct TaskRowView: View {
             .accessibilityHint("詳細を開く")
         }
         // 水滴のテーマ：終えたカードの下半分に水がたまる（ガラスの上、文字の下）
+        // ろうそくのテーマ：まだのカードは火に照らされ、終えると暗くなる
         .background {
-            if style == .water {
-                WaterPool(isFilled: task.isCompleted, isAnimated: animationsEnabled && !reduceMotion)
+            switch style {
+            case .water:
+                WaterPool(isFilled: task.isCompleted, isAnimated: isAnimated)
                     .clipShape(RoundedRectangle(cornerRadius: style.cardRadius, style: .continuous))
+            case .candle:
+                CandleCardLight(isLit: !task.isCompleted, isAnimated: isAnimated,
+                                phase: Double(StampMark.stableSeed(for: task.title) % 628) / 100)
+                    .clipShape(RoundedRectangle(cornerRadius: style.cardRadius, style: .continuous))
+            default:
+                EmptyView()
             }
         }
         .dsSurface(.card, elevation: task.isCompleted ? .none : .card)
@@ -52,8 +61,26 @@ struct TaskRowView: View {
             if style.hasCompletionEffects { bubbleEffects?.updateCardFrame(frame, for: task.id) }
         }
         .onDisappear { bubbleEffects?.removeCardFrame(for: task.id) }
-        .opacity(task.isCompleted ? DS.Opacity.completed : 1)
+        // 判子のテーマ：判子が紙に当たった瞬間、カードがぐっと沈む
+        .keyframeAnimator(initialValue: CGFloat(0), trigger: sinkTrigger) { content, depth in
+            content.offset(y: depth)
+        } keyframes: { _ in
+            LinearKeyframe(0, duration: DS.Stamp.pressDelay)
+            CubicKeyframe(DS.Stamp.sinkDepth, duration: 0.05)
+            SpringKeyframe(0, duration: 0.35, spring: .bouncy)
+        }
+        .onChange(of: task.isCompleted) { _, isCompleted in
+            if isCompleted, style == .stamp, isAnimated { sinkTrigger += 1 }
+        }
+        .opacity(task.isCompleted ? completedOpacity : 1)
         .animation(fadeOutOnComplete ? DS.Motion.fade : nil, value: task.isCompleted)
+    }
+
+    private var isAnimated: Bool { animationsEnabled && !reduceMotion }
+
+    /// 終えた行の薄さ。判子は押した印を見せたいので、薄くしすぎない
+    private var completedOpacity: Double {
+        style == .stamp ? 0.85 : DS.Opacity.completed
     }
 }
 

@@ -61,7 +61,7 @@ struct FilterTabs: View {
             switch style {
             case .standard:
                 Capsule().fill(DS.Colors.segmentSelected).dsShadow(.card)
-            case .bubble, .flower, .water:
+            case .bubble, .flower, .water, .stamp, .candle, .constellation:
                 DSSurface(shape: .capsule)
             }
         }

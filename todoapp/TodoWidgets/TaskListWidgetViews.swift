@@ -46,6 +46,12 @@ struct TaskWidgetBackground: View {
             FlowerBackdrop(kind: kind, isAnimated: false)
         case .water:
             WaterBackdrop(isAnimated: false)
+        case .stamp:
+            WashiBackdrop()
+        case .candle:
+            CandleBackdrop()
+        case .constellation:
+            StarfieldBackdrop(isAnimated: false)
         }
     }
 }
@@ -248,6 +254,16 @@ struct WidgetCheckFace: View {
                         .foregroundStyle(accent.onFill)
                 }
             }
+        case .stamp:
+            if isCompleted {
+                StampMark(tilt: -6)
+            } else {
+                StampGuide()
+            }
+        case .candle:
+            CandleFace(lit: isCompleted ? 0 : 1, isAnimated: false)
+        case .constellation:
+            StarFace(isLit: isCompleted)
         case .water:
             if isCompleted {
                 WaterBead()

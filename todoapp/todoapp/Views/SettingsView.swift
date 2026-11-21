@@ -144,6 +144,33 @@ private struct ThemeSwatch: View {
                     .offset(x: DS.Size.groupIcon * 0.2, y: -DS.Size.groupIcon * 0.18)
             }
             .clipShape(Circle())
+        case .stamp:
+            ZStack {
+                WashiSurface(shape: Circle())
+                StampMark(tilt: -8)
+                    .frame(width: DS.Size.groupIcon * 0.62, height: DS.Size.groupIcon * 0.62)
+            }
+        case .candle:
+            ZStack {
+                Circle().fill(RadialGradient(colors: [DS.Candle.cardLight, DS.Candle.roomTop],
+                                             center: .center, startRadius: 0, endRadius: DS.Size.groupIcon * 0.55))
+                CandleFace(lit: 1, isAnimated: false)
+                    .frame(width: DS.Size.groupIcon * 0.5, height: DS.Size.groupIcon * 0.5)
+                    .offset(y: DS.Size.groupIcon * 0.08)
+            }
+            .clipShape(Circle())
+        case .constellation:
+            ZStack {
+                Circle().fill(LinearGradient(colors: [DS.Star.skyGlow, DS.Star.skyTop, DS.Star.skyBottom],
+                                             startPoint: .topTrailing, endPoint: .bottomLeading))
+                StarFace(isLit: true)
+                    .frame(width: DS.Size.groupIcon * 0.42, height: DS.Size.groupIcon * 0.42)
+                Circle().fill(Color.white.opacity(0.8)).frame(width: 2, height: 2)
+                    .offset(x: -DS.Size.groupIcon * 0.24, y: -DS.Size.groupIcon * 0.18)
+                Circle().fill(Color.white.opacity(0.6)).frame(width: 1.5, height: 1.5)
+                    .offset(x: DS.Size.groupIcon * 0.22, y: DS.Size.groupIcon * 0.2)
+            }
+            .clipShape(Circle())
         case .standard:
             if theme.isMonochrome {
                 ZStack {
@@ -162,6 +189,10 @@ private struct ThemeSwatch: View {
 
     private var checkColor: Color {
         if theme.isMonochrome { return DS.Colors.monoSwatchLight }
-        return theme.style == .standard ? theme.accent.onFill : DS.Bubble.rim
+        switch theme.style {
+        case .standard: return theme.accent.onFill
+        case .stamp: return DS.Stamp.vermilion
+        default: return DS.Bubble.rim
+        }
     }
 }

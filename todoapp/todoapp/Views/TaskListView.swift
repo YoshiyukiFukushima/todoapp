@@ -27,6 +27,7 @@ struct TaskListView: View {
     @Environment(BubbleEffects.self) private var bubbleEffects: BubbleEffects?
     @Environment(FlowerEffects.self) private var flowerEffects: FlowerEffects?
     @Environment(WaterEffects.self) private var waterEffects: WaterEffects?
+    @Environment(StarEffects.self) private var starEffects: StarEffects?
     @State private var taskPendingDelete: TodoTask?
     @State private var showDeleteConfirm = false
     @State private var manualExpandOverrides: [Int: Bool] = [:]
@@ -147,6 +148,17 @@ struct TaskListView: View {
                 taskViewModel.delete(task)
             }
         }
+        // 星座のテーマ：このタブのタスクの数だけ夜空に星を置き、終えた数だけ灯す
+        .onChange(of: skyProgress, initial: true) { _, progress in
+            guard style == .constellation else { return }
+            starEffects?.sync(total: progress[1], done: progress[0])
+        }
+    }
+
+    /// 夜空の星のための [終えた数, 全部の数]（星座のテーマ以外では 0）
+    private var skyProgress: [Int] {
+        guard style == .constellation, let progress = TaskQuery().progress(in: scopeTasks, for: filter) else { return [0, 0] }
+        return [progress.done, progress.total]
     }
 
     // MARK: - サブグループ
@@ -242,6 +254,8 @@ struct TaskListView: View {
         case .bubble: bubbleEffects?.celebrate()
         case .flower(let kind): flowerEffects?.celebrate(kind)
         case .water: waterEffects?.celebrate()
+        // 判子・ろうそくは 1 件ずつの演出だけ。星座は夜空の星が線でつながる（StarEffects）
+        case .stamp, .candle, .constellation: break
         }
     }
 
