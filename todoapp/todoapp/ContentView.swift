@@ -39,6 +39,10 @@ struct ContentView: View {
     @State private var catEffects = CatEffects()
     @State private var fireworksEffects = FireworksEffects()
     @State private var chickEffects = ChickEffects()
+    @State private var balloonEffects = BalloonEffects()
+    @State private var paperPlaneEffects = PaperPlaneEffects()
+    @State private var shishiEffects = ShishiEffects()
+    @State private var butterflyEffects = ButterflyEffects()
 
     private var taskViewModel: TaskViewModel { TaskViewModel(modelContext: modelContext) }
     private var groupViewModel: GroupViewModel { GroupViewModel(modelContext: modelContext) }
@@ -164,6 +168,12 @@ struct ContentView: View {
             case .cat: CatEffectsLayer(effects: catEffects)
             case .fireworks: FireworksEffectsLayer(effects: fireworksEffects)
             case .chick: ChickEffectsLayer(effects: chickEffects)
+            case .balloon: BalloonEffectsLayer(effects: balloonEffects)
+            // ゼリーの動きは、行の中（チェックとカード）で完結する
+            case .jelly: EmptyView()
+            case .paperPlane: PaperPlaneEffectsLayer(effects: paperPlaneEffects)
+            case .shishiOdoshi: ShishiEffectsLayer(effects: shishiEffects)
+            case .butterfly: ButterflyEffectsLayer(effects: butterflyEffects)
             }
         }
         .environment(bubbleEffects)
@@ -174,6 +184,10 @@ struct ContentView: View {
         .environment(catEffects)
         .environment(fireworksEffects)
         .environment(chickEffects)
+        .environment(balloonEffects)
+        .environment(paperPlaneEffects)
+        .environment(shishiEffects)
+        .environment(butterflyEffects)
         .dsRoot(theme: theme)
         .dsApplyThemeToWindows(theme)
         .onAppear(perform: seedDefaultGroupIfNeeded)

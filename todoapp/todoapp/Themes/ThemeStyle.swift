@@ -34,6 +34,16 @@ nonisolated enum ThemeStyle: Sendable, Equatable {
     case fireworks
     /// ひよこ（あたたかいガラスのカード、卵が割れて生まれるひよこ、全部終わると跳ねるひよこ）
     case chick
+    /// 風船（夕暮れの空、ふくらんでパンッと割れるチェック、紙吹雪と落ちるひも）
+    case balloon
+    /// ゼリー（ガラスの器、ぷるんと揺れて色に染まるチェック、少し揺れるカード）
+    case jelly
+    /// 紙飛行機（夜明け前の空、折りたたまれて飛んでいくチェック、点線の軌跡）
+    case paperPlane
+    /// ししおどし（月夜の庭、水がたまって石を打つチェック、「カコーン」）
+    case shishiOdoshi
+    /// ちょうちょ（夕暮れの野原、羽化するチェック、カードの右端にとまるちょうちょ）
+    case butterfly
 }
 
 extension ThemeStyle {
@@ -41,7 +51,8 @@ extension ThemeStyle {
     var cardRadius: CGFloat {
         switch self {
         case .standard: DS.Radius.l
-        case .bubble, .flower, .water, .candle, .constellation, .cat, .fireworks, .chick: DS.Radius.bubbleCard
+        case .bubble, .flower, .water, .candle, .constellation, .cat, .fireworks, .chick,
+             .balloon, .jelly, .paperPlane, .shishiOdoshi, .butterfly: DS.Radius.bubbleCard
         case .stamp: DS.Radius.l
         }
     }
@@ -58,14 +69,17 @@ extension ThemeStyle {
         case .constellation: 28
         case .cat, .fireworks: DS.Size.bubbleCheckbox
         case .chick: DS.Size.chickCheckbox
+        case .balloon, .jelly, .paperPlane, .butterfly: 32
+        // 小さな庭を描くので少し大きめ
+        case .shishiOdoshi: 38
         }
     }
 
     /// 完了したタスクでも、チェックを薄くしないか（チェックの絵が主役のテーマ）
     var keepsCheckBright: Bool {
         switch self {
-        case .cat, .fireworks, .chick: true
-        case .standard, .bubble, .flower, .water, .stamp, .candle, .constellation: false
+        case .cat, .fireworks, .chick, .jelly, .shishiOdoshi, .butterfly: true
+        case .standard, .bubble, .flower, .water, .stamp, .candle, .constellation, .balloon, .paperPlane: false
         }
     }
 
@@ -85,6 +99,11 @@ extension ThemeStyle {
         case .cat: DS.Cat.glass
         case .fireworks: DS.Fireworks.glass
         case .chick: DS.Chick.glass
+        case .balloon: DS.Balloon.glass
+        case .jelly: DS.Jelly.glass
+        case .paperPlane: DS.PaperPlane.glass
+        case .shishiOdoshi: DS.Shishi.glass
+        case .butterfly: DS.Butterfly.glass
         }
     }
 }
@@ -112,7 +131,7 @@ struct DSScreenBackground: View {
             CandleBackdrop()
         case .constellation:
             StarfieldBackdrop(isAnimated: themeManager.animationsEnabled && !reduceMotion)
-        case .cat, .fireworks, .chick:
+        case .cat, .fireworks, .chick, .balloon, .jelly, .paperPlane, .shishiOdoshi, .butterfly:
             NightBackdrop(style: style, isAnimated: themeManager.animationsEnabled && !reduceMotion)
         }
     }
@@ -149,7 +168,7 @@ struct DSSurface: View {
         switch style {
         case .standard:
             path.fill(DS.Colors.surface).dsShadow(elevation)
-        case .bubble, .flower, .water, .cat, .fireworks, .chick:
+        case .bubble, .flower, .water, .cat, .fireworks, .chick, .balloon, .jelly, .paperPlane, .shishiOdoshi, .butterfly:
             BubbleGlass(shape: path, tint: style.glassTint ?? .bubble,
                         highlight: shape == .circle ? .spot : .bar, isDimmed: elevation == .none)
         case .candle, .constellation:

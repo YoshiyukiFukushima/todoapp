@@ -171,7 +171,7 @@
 テーマは 3 つの部品でできている。
 1. **色の表** `ThemePalette`（`DesignSystem/ThemePalettes.swift`）：背景・カード・文字など。`DS.Colors` は今のテーマの表から色を取る（UIKit のトレイト `DSThemeTrait` 経由なので、シートの中まで切り替わる）。
 2. **差し色** `DS.Accent`。
-3. **描き方** `ThemeStyle`（`Themes/ThemeStyle.swift`）：背景・カード・チェック・完了の演出。今は `standard`・`bubble`・`flower`・`water`・`stamp`・`candle`・`constellation`・`cat`・`fireworks`・`chick`。
+3. **描き方** `ThemeStyle`（`Themes/ThemeStyle.swift`）：背景・カード・チェック・完了の演出。今は `standard`・`bubble`・`flower`・`water`・`stamp`・`candle`・`constellation`・`cat`・`fireworks`・`chick`・`balloon`・`jelly`・`paperPlane`・`shishiOdoshi`・`butterfly`。
 
 - **色だけ違うテーマ**：`ColorTheme` に case を足し、`palette`・`accent`・`displayName` を返すだけ。
 - **形や動きも変えるテーマ**：`ThemeStyle` に case を足し、`Themes/<名前>/` に部品を置き、`DSScreenBackground`・`DSSurface`・`CheckButton` などの switch に描き方を足す（足し忘れはコンパイルエラーになる）。
@@ -190,6 +190,23 @@
 - 完了したタスクは薄くなるが、この 3 つのテーマではチェック（肉球・花火の玉・ひよこ）だけは薄くしない（`ThemeStyle.keepsCheckBright`）。
 - 部品は `Themes/Cat`・`Themes/Fireworks`・`Themes/Chick`。背景（暗いグラデーション＋足あと・星・光の粒）は `Themes/Night/NightBackdrop.swift` で共通。
 - `〜Views.swift` はウィジェットでも使う（チェックと背景）。`〜Effects.swift` は画面全体に重ねる演出で、アプリだけ。
+
+### 風船・ゼリー・紙飛行機・ししおどし・ちょうちょのテーマ
+設定のテーマ一覧では、この順で 1 列に並ぶ。
+| テーマ | チェックしたとき | 終わったあと |
+|---|---|---|
+| 風船 | しぼんだ風船がぐらぐら揺れながらふくらみ、パンッと割れる。ゴムの破片と紙吹雪が飛び散り、ひもがひらりと落ちる（約 1 秒） | 風船の色の丸にチェック |
+| ゼリー | ぎゅっとつぶれてから、ぷるんぷるんと何度も揺れて止まる。揺れるあいだに透明なゼリーがぶどう・オレンジ・メロンの色に染まり、中にチェックが浮かぶ。カード全体も少しだけ揺れる（約 1 秒） | 色に染まったゼリー |
+| 紙飛行機 | 白い紙がくしゃっと折りたたまれて紙飛行機になり、一度少し沈んでから、点線の軌跡を残して右上の空へぐいっと飛んでいく | 点線の丸にチェック |
+| ししおどし | 竹筒に水が注がれ、重くなって少しずつ傾き、ぐっと倒れて水をこぼし、戻るときに石を打って「カコーン」と鳴る（約 2.7 秒。ためてから鳴るまでの間を楽しむ） | 苔色のチェック |
+| ちょうちょ | さなぎが揺れてひびが入り、割れてちょうちょが羽を広げる。そのままひらひら飛んで、カードの右端にとまる | ちょうちょがカードの右端でゆっくり羽ばたき続ける。外すと飛んでいく |
+
+- 完了したあとも何かが残るのはちょうちょだけ。終えたタスクの数だけちょうちょが並ぶので、集める楽しさが出る。毎日たくさんチェックするなら、短く終わるゼリーや風船が向いている。
+- 風船・ゼリー・ちょうちょの色はタスクごとに決まる（`ThemeSeed`）。アプリとウィジェットで同じ色になる。
+- 「カコーン」の音はファイルを持たず、その場で作る（`KnockSound`）。マナーモードでは鳴らない（`.ambient`）。動きを減らす設定のときは、演出も音も出さない。
+- ちょうちょがカードの上を飛んでとまるのは `TaskRowView` の上の `ButterflyPerch`。ウィジェットにはカードの右端がないので、ちょうちょはチェックの中にとまる。
+- 全部終わったときの演出はない（1 件ずつの演出が主役）。
+- 部品は `Themes/Balloon`・`Themes/Jelly`・`Themes/PaperPlane`・`Themes/Shishi`・`Themes/Butterfly`。背景（夕暮れの空・夜の器・夜明け前の空・月夜の庭・夕暮れの野原）は `NightBackdrop` で共通。
 
 ## 2026-11-21 タスクを別のグループへ移す
 

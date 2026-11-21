@@ -262,6 +262,8 @@ struct TaskListView: View {
         case .fireworks: fireworksEffects?.celebrate()
         // ひよこは、生まれる動きだけで十分なので、全部終わったときの演出はない
         case .chick: break
+        // 新しい 5 つは 1 件ずつの演出が主役（ちょうちょは、終えた数だけカードに並ぶのがご褒美）
+        case .balloon, .jelly, .paperPlane, .shishiOdoshi, .butterfly: break
         }
     }
 

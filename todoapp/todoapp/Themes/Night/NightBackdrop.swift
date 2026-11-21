@@ -2,7 +2,7 @@
 //  NightBackdrop.swift
 //  todoapp
 //
-//  ねこ・花火・ひよこのテーマで共通の部品。
+//  ねこ・花火・ひよこ・風船・ゼリー・紙飛行機・ししおどし・ちょうちょのテーマで共通の部品。
 //  - ThemeSeed: タスクごとに決まった「でたらめ」（肉球の向き・花火の色など）。描き直しても変わらない
 //  - NightBackdrop: 暗いグラデーションと、ぼんやり光る 3 色、テーマごとの小さな飾り（足あと・星・光の粒）
 //
@@ -58,6 +58,16 @@ struct NightBackdrop: View {
             Look(top: DS.Fireworks.deepTop, bottom: DS.Fireworks.deepBottom, glows: DS.Fireworks.glows)
         case .chick:
             Look(top: DS.Chick.deepTop, bottom: DS.Chick.deepBottom, glows: DS.Chick.glows)
+        case .balloon:
+            Look(top: DS.Balloon.deepTop, bottom: DS.Balloon.deepBottom, glows: DS.Balloon.glows)
+        case .jelly:
+            Look(top: DS.Jelly.deepTop, bottom: DS.Jelly.deepBottom, glows: DS.Jelly.glows)
+        case .paperPlane:
+            Look(top: DS.PaperPlane.deepTop, bottom: DS.PaperPlane.deepBottom, glows: DS.PaperPlane.glows)
+        case .shishiOdoshi:
+            Look(top: DS.Shishi.deepTop, bottom: DS.Shishi.deepBottom, glows: DS.Shishi.glows)
+        case .butterfly:
+            Look(top: DS.Butterfly.deepTop, bottom: DS.Butterfly.deepBottom, glows: DS.Butterfly.glows)
         default:
             Look(top: DS.Cat.deepTop, bottom: DS.Cat.deepBottom, glows: DS.Cat.glows)
         }
@@ -99,6 +109,11 @@ struct NightBackdrop: View {
         switch style {
         case .fireworks: FireworksSky(time: time)
         case .chick: ChickDust(time: time)
+        case .balloon: BalloonSky(time: time)
+        case .jelly: JellySoda(time: time)
+        case .paperPlane: PaperClouds(time: time)
+        case .shishiOdoshi: ShishiRipples(time: time)
+        case .butterfly: ButterflyPollen(time: time)
         default: CatFootprints(time: time)
         }
     }
@@ -118,5 +133,37 @@ struct AmbientDot {
             AmbientDot(x: random.next(), y: random.next(), size: random.next(),
                        speed: random.next(in: 0.5...1.5), phase: random.next() * .pi * 2)
         }
+    }
+}
+
+// MARK: - 動きの計算（どのテーマの部品からも使う）
+
+nonisolated enum Ease {
+    static func clamp(_ x: Double) -> Double { min(max(x, 0), 1) }
+
+    /// a から b にかけて、なめらかに 0→1
+    static func smoothstep(_ a: Double, _ b: Double, _ x: Double) -> Double {
+        let t = clamp((x - a) / (b - a))
+        return t * t * (3 - 2 * t)
+    }
+
+    /// 少し行きすぎてから戻る
+    static func outBack(_ x: Double, overshoot: Double = 1.7) -> Double {
+        let t = clamp(x)
+        let c3 = overshoot + 1
+        let u = t - 1
+        return 1 + c3 * u * u * u + overshoot * u * u
+    }
+
+    /// だんだん速く
+    static func inCubic(_ x: Double) -> Double {
+        let t = clamp(x)
+        return t * t * t
+    }
+
+    /// だんだんゆっくり
+    static func outCubic(_ x: Double) -> Double {
+        let u = 1 - clamp(x)
+        return 1 - u * u * u
     }
 }

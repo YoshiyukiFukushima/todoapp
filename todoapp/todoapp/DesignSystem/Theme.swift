@@ -41,6 +41,16 @@ nonisolated enum ColorTheme: String, CaseIterable, Identifiable, Sendable {
     case fireworks
     /// ひよこ。チェックすると卵からひよこが生まれる。いつも暗い
     case chick
+    /// 風船。ふくらんでパンッと割れ、紙吹雪が散る。いつも暗い
+    case balloon
+    /// ゼリー。ぷるんと揺れて、ぶどう・オレンジ・メロンの色に染まる。いつも暗い
+    case jelly
+    /// 紙飛行機。紙が折りたたまれて、点線を残して空へ飛んでいく。いつも暗い
+    case paperPlane
+    /// ししおどし。水がたまって傾き、石を打って「カコーン」と鳴る。いつも暗い
+    case shishiOdoshi
+    /// ちょうちょ。さなぎから羽化して、カードの右端にとまる。終えた数だけ並ぶ。いつも暗い
+    case butterfly
 
     var id: String { rawValue }
 
@@ -61,6 +71,11 @@ nonisolated enum ColorTheme: String, CaseIterable, Identifiable, Sendable {
         case .cat: .cat
         case .fireworks: .fireworks
         case .chick: .chick
+        case .balloon: .balloon
+        case .jelly: .jelly
+        case .paperPlane: .paperPlane
+        case .shishiOdoshi: .shishiOdoshi
+        case .butterfly: .butterfly
         default: .warm
         }
     }
@@ -79,6 +94,11 @@ nonisolated enum ColorTheme: String, CaseIterable, Identifiable, Sendable {
         case .cat: .cat
         case .fireworks: .fireworks
         case .chick: .chick
+        case .balloon: .balloon
+        case .jelly: .jelly
+        case .paperPlane: .paperPlane
+        case .shishiOdoshi: .shishiOdoshi
+        case .butterfly: .butterfly
         default: .standard
         }
     }
@@ -87,7 +107,8 @@ nonisolated enum ColorTheme: String, CaseIterable, Identifiable, Sendable {
     var fixedInterfaceStyle: UIUserInterfaceStyle? {
         switch style {
         case .standard: nil
-        case .bubble, .flower, .water, .candle, .constellation, .cat, .fireworks, .chick: .dark
+        case .bubble, .flower, .water, .candle, .constellation, .cat, .fireworks, .chick,
+             .balloon, .jelly, .paperPlane, .shishiOdoshi, .butterfly: .dark
         case .stamp: .light
         }
     }
@@ -111,6 +132,11 @@ extension ColorTheme {
         case .cat: "ねこ"
         case .fireworks: "花火"
         case .chick: "ひよこ"
+        case .balloon: "風船"
+        case .jelly: "ゼリー"
+        case .paperPlane: "紙飛行機"
+        case .shishiOdoshi: "ししおどし"
+        case .butterfly: "ちょうちょ"
         default: accent.displayName
         }
     }
@@ -138,6 +164,11 @@ extension ColorTheme {
         case .cat: .berry
         case .fireworks: .sky
         case .chick: .mikan
+        case .balloon: .tomato
+        case .jelly: .grape
+        case .paperPlane: .sky
+        case .shishiOdoshi: .leaf
+        case .butterfly: .teal
         }
     }
 }
