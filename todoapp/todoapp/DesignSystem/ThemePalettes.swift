@@ -223,21 +223,6 @@ nonisolated extension ThemePalette {
 }
 
 nonisolated extension ThemePalette {
-    /// ねこ（夜のお部屋。ほんのり赤紫のすりガラス。いつも暗い）
-    static let cat = ThemePalette(
-        background: DSColorPair(fixed: 0x2B1D2A),
-        surface: DSColorPair(fixed: 0x4A3548),
-        surfaceSunken: DSColorPair(fixed: 0x36253A),
-        segmentSelected: DSColorPair(fixed: 0x5C4459),
-        surfaceElevated: DSColorPair(fixed: 0x3A2838),
-        textPrimary: DSColorPair(fixed: 0xFFF7FA),
-        textSecondary: DSColorPair(fixed: 0xDCC6D2),
-        textTertiary: DSColorPair(fixed: 0x9F8597),
-        separator: DSColorPair(fixed: 0x4A3548),
-        success: DSColorPair(fixed: 0xF2A6BE),
-        shadow: DSColorPair(fixed: 0x000000, alpha: 0.5)
-    )
-
     /// 花火（夏の夜空。墨色のガラス。いつも暗い）
     static let fireworks = ThemePalette(
         background: DSColorPair(fixed: 0x05070F),
@@ -251,21 +236,6 @@ nonisolated extension ThemePalette {
         separator: DSColorPair(fixed: 0x262938),
         success: DSColorPair(fixed: 0xF5C77A),
         shadow: DSColorPair(fixed: 0x000000, alpha: 0.6)
-    )
-
-    /// ひよこ（あたたかい明かりの部屋。こはく色のガラス。いつも暗い）
-    static let chick = ThemePalette(
-        background: DSColorPair(fixed: 0x1F1910),
-        surface: DSColorPair(fixed: 0x4A4030),
-        surfaceSunken: DSColorPair(fixed: 0x2E261A),
-        segmentSelected: DSColorPair(fixed: 0x5E5240),
-        surfaceElevated: DSColorPair(fixed: 0x332A1D),
-        textPrimary: DSColorPair(fixed: 0xFFFAF0),
-        textSecondary: DSColorPair(fixed: 0xDDD0B8),
-        textTertiary: DSColorPair(fixed: 0xA0927A),
-        separator: DSColorPair(fixed: 0x4A4030),
-        success: DSColorPair(fixed: 0xFFD54A),
-        shadow: DSColorPair(fixed: 0x000000, alpha: 0.5)
     )
 
     /// 風船（夕暮れの空。ラベンダーのガラス。いつも暗い）
@@ -341,6 +311,51 @@ nonisolated extension ThemePalette {
         separator: DSColorPair(fixed: 0x3A3C5E),
         success: DSColorPair(fixed: 0x9B87E0),
         shadow: DSColorPair(fixed: 0x000000, alpha: 0.5)
+    )
+
+    /// 惑星（星雲の夜空。すみれ色のガラス。いつも暗い）
+    static let planet = ThemePalette(
+        background: DSColorPair(fixed: 0x120F38),
+        surface: DSColorPair(fixed: 0x33306A),
+        surfaceSunken: DSColorPair(fixed: 0x221F52),
+        segmentSelected: DSColorPair(fixed: 0x45417E),
+        surfaceElevated: DSColorPair(fixed: 0x29265C),
+        textPrimary: DSColorPair(fixed: 0xF7F5FF),
+        textSecondary: DSColorPair(fixed: 0xCBC6EC),
+        textTertiary: DSColorPair(fixed: 0x8E88BA),
+        separator: DSColorPair(fixed: 0x33306A),
+        success: DSColorPair(fixed: 0xF0855C),
+        shadow: DSColorPair(fixed: 0x000000, alpha: 0.5)
+    )
+
+    /// 雪だるま（初雪の朝。白いすりガラス。いつも明るい）
+    static let snowman = ThemePalette(
+        background: DSColorPair(fixed: 0xD6E5F6),
+        surface: DSColorPair(fixed: 0xF5F9FE),
+        surfaceSunken: DSColorPair(fixed: 0xDCE7F4),
+        segmentSelected: DSColorPair(fixed: 0xFFFFFF),
+        surfaceElevated: DSColorPair(fixed: 0xFFFFFF),
+        textPrimary: DSColorPair(fixed: 0x22324A),
+        textSecondary: DSColorPair(fixed: 0x5D6D86),
+        textTertiary: DSColorPair(fixed: 0x93A2B8),
+        separator: DSColorPair(fixed: 0xC9D7E8),
+        success: DSColorPair(fixed: 0xE14E5B),
+        shadow: DSColorPair(fixed: 0x5A7AA8, alpha: 0.2)
+    )
+
+    /// くもりのち晴れ（青空。空色のすりガラス。いつも明るい）
+    static let weather = ThemePalette(
+        background: DSColorPair(fixed: 0xB3D6F2),
+        surface: DSColorPair(fixed: 0xEBF6FE),
+        surfaceSunken: DSColorPair(fixed: 0xCFE4F5),
+        segmentSelected: DSColorPair(fixed: 0xFFFFFF),
+        surfaceElevated: DSColorPair(fixed: 0xFFFFFF),
+        textPrimary: DSColorPair(fixed: 0x1E3347),
+        textSecondary: DSColorPair(fixed: 0x52677C),
+        textTertiary: DSColorPair(fixed: 0x8AA0B4),
+        separator: DSColorPair(fixed: 0xBDD6EA),
+        success: DSColorPair(fixed: 0xF5A01F),
+        shadow: DSColorPair(fixed: 0x4F7FA8, alpha: 0.2)
     )
 }
 

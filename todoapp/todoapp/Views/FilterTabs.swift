@@ -61,8 +61,9 @@ struct FilterTabs: View {
             switch style {
             case .standard:
                 Capsule().fill(DS.Colors.segmentSelected).dsShadow(.card)
-            case .bubble, .flower, .water, .stamp, .candle, .constellation, .cat, .fireworks, .chick,
-                 .balloon, .jelly, .paperPlane, .shishiOdoshi, .butterfly:
+            case .bubble, .flower, .water, .stamp, .candle, .constellation, .fireworks,
+                 .balloon, .jelly, .paperPlane, .shishiOdoshi, .butterfly,
+                 .planet, .snowman, .weather:
                 DSSurface(shape: .capsule)
             }
         }

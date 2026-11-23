@@ -52,7 +52,7 @@ struct TaskWidgetBackground: View {
             CandleBackdrop()
         case .constellation:
             StarfieldBackdrop(isAnimated: false)
-        case .cat, .fireworks, .chick, .balloon, .jelly, .paperPlane, .shishiOdoshi, .butterfly:
+        case .fireworks, .balloon, .jelly, .paperPlane, .shishiOdoshi, .butterfly, .planet, .snowman, .weather:
             NightBackdrop(style: theme.style, isAnimated: false)
         }
     }
@@ -279,12 +279,8 @@ struct WidgetCheckFace: View {
             // 咲いた花は外へ広がるので、行からはみ出しすぎないよう少し小さく描く
             FlowerBlossom(kind: kind, progress: isCompleted ? 1 : 0)
                 .scaleEffect(isCompleted ? 0.72 : 1)
-        case .cat:
-            CatPawCheck(isCompleted: isCompleted, stamp: PawStamp(seed: seed), isAnimated: false)
         case .fireworks:
             FireworkCheck(isCompleted: isCompleted, color: FireworkColor.pick(seed: seed), isAnimated: false)
-        case .chick:
-            ChickCheck(isCompleted: isCompleted, isAnimated: false)
         case .balloon:
             BalloonCheck(isCompleted: isCompleted, color: BalloonColor.pick(seed: seed), isAnimated: false)
         case .jelly:
@@ -297,6 +293,12 @@ struct WidgetCheckFace: View {
             // ウィジェットにはカードの右端がないので、ちょうちょはチェックの中にとまる
             ButterflyCheck(isCompleted: isCompleted, palette: ButterflyPalette.pick(seed: seed),
                            isAnimated: false, keepsButterfly: true)
+        case .planet:
+            PlanetCheck(isCompleted: isCompleted, palette: PlanetPalette.pick(seed: seed), isAnimated: false)
+        case .snowman:
+            SnowmanCheck(isCompleted: isCompleted, isAnimated: false)
+        case .weather:
+            WeatherCheck(isCompleted: isCompleted, isAnimated: false)
         }
     }
 }

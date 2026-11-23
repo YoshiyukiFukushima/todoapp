@@ -28,12 +28,8 @@ nonisolated enum ThemeStyle: Sendable, Equatable {
     case candle
     /// 星座（夜のガラスのカード、灯る星、夜空の星座）
     case constellation
-    /// ねこ（すりガラスのカード、ねこの手が押す肉球のスタンプ、全部終わると顔を出すねこ）
-    case cat
     /// 花火（夜空のカード、まっすぐ放射状に開く花火、全部終わると打ち上げ）
     case fireworks
-    /// ひよこ（あたたかいガラスのカード、卵が割れて生まれるひよこ、全部終わると跳ねるひよこ）
-    case chick
     /// 風船（夕暮れの空、ふくらんでパンッと割れるチェック、紙吹雪と落ちるひも）
     case balloon
     /// ゼリー（ガラスの器、ぷるんと揺れて色に染まるチェック、少し揺れるカード）
@@ -44,6 +40,12 @@ nonisolated enum ThemeStyle: Sendable, Equatable {
     case shishiOdoshi
     /// ちょうちょ（夕暮れの野原、羽化するチェック、カードの右端にとまるちょうちょ）
     case butterfly
+    /// 惑星（星雲の夜空、星くずが集まって生まれる輪のある惑星）
+    case planet
+    /// 雪だるま（初雪の朝、雪玉が転がって頭が乗り、マフラーを巻く。明るい）
+    case snowman
+    /// くもりのち晴れ（青空、雲が流れて太陽が出る、全部終えると虹。明るい）
+    case weather
 }
 
 extension ThemeStyle {
@@ -51,8 +53,8 @@ extension ThemeStyle {
     var cardRadius: CGFloat {
         switch self {
         case .standard: DS.Radius.l
-        case .bubble, .flower, .water, .candle, .constellation, .cat, .fireworks, .chick,
-             .balloon, .jelly, .paperPlane, .shishiOdoshi, .butterfly: DS.Radius.bubbleCard
+        case .bubble, .flower, .water, .candle, .constellation, .fireworks,
+             .balloon, .jelly, .paperPlane, .shishiOdoshi, .butterfly, .planet, .snowman, .weather: DS.Radius.bubbleCard
         case .stamp: DS.Radius.l
         }
     }
@@ -67,9 +69,8 @@ extension ThemeStyle {
         case .stamp: 34
         case .candle: 30
         case .constellation: 28
-        case .cat, .fireworks: DS.Size.bubbleCheckbox
-        case .chick: DS.Size.chickCheckbox
-        case .balloon, .jelly, .paperPlane, .butterfly: 32
+        case .fireworks: DS.Size.bubbleCheckbox
+        case .balloon, .jelly, .paperPlane, .butterfly, .planet, .snowman, .weather: 32
         // 小さな庭を描くので少し大きめ
         case .shishiOdoshi: 38
         }
@@ -78,8 +79,9 @@ extension ThemeStyle {
     /// 完了したタスクでも、チェックを薄くしないか（チェックの絵が主役のテーマ）
     var keepsCheckBright: Bool {
         switch self {
-        case .cat, .fireworks, .chick, .jelly, .shishiOdoshi, .butterfly: true
-        case .standard, .bubble, .flower, .water, .stamp, .candle, .constellation, .balloon, .paperPlane: false
+        // 花は、咲いた花が薄暗くなると映えないので、薄くしない
+        case .flower, .fireworks, .jelly, .shishiOdoshi, .butterfly, .planet, .snowman, .weather: true
+        case .standard, .bubble, .water, .stamp, .candle, .constellation, .balloon, .paperPlane: false
         }
     }
 
@@ -96,14 +98,15 @@ extension ThemeStyle {
         case .stamp: nil
         case .candle: DS.Candle.glass
         case .constellation: DS.Star.glass
-        case .cat: DS.Cat.glass
         case .fireworks: DS.Fireworks.glass
-        case .chick: DS.Chick.glass
         case .balloon: DS.Balloon.glass
         case .jelly: DS.Jelly.glass
         case .paperPlane: DS.PaperPlane.glass
         case .shishiOdoshi: DS.Shishi.glass
         case .butterfly: DS.Butterfly.glass
+        case .planet: DS.Planet.glass
+        case .snowman: DS.Snowman.glass
+        case .weather: DS.Weather.glass
         }
     }
 }
@@ -131,7 +134,7 @@ struct DSScreenBackground: View {
             CandleBackdrop()
         case .constellation:
             StarfieldBackdrop(isAnimated: themeManager.animationsEnabled && !reduceMotion)
-        case .cat, .fireworks, .chick, .balloon, .jelly, .paperPlane, .shishiOdoshi, .butterfly:
+        case .fireworks, .balloon, .jelly, .paperPlane, .shishiOdoshi, .butterfly, .planet, .snowman, .weather:
             NightBackdrop(style: style, isAnimated: themeManager.animationsEnabled && !reduceMotion)
         }
     }
@@ -168,7 +171,8 @@ struct DSSurface: View {
         switch style {
         case .standard:
             path.fill(DS.Colors.surface).dsShadow(elevation)
-        case .bubble, .flower, .water, .cat, .fireworks, .chick, .balloon, .jelly, .paperPlane, .shishiOdoshi, .butterfly:
+        case .bubble, .flower, .water, .fireworks, .balloon, .jelly, .paperPlane, .shishiOdoshi, .butterfly,
+             .planet, .snowman, .weather:
             BubbleGlass(shape: path, tint: style.glassTint ?? .bubble,
                         highlight: shape == .circle ? .spot : .bar, isDimmed: elevation == .none)
         case .candle, .constellation:

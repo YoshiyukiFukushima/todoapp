@@ -27,8 +27,8 @@ struct TaskListView: View {
     @Environment(BubbleEffects.self) private var bubbleEffects: BubbleEffects?
     @Environment(FlowerEffects.self) private var flowerEffects: FlowerEffects?
     @Environment(WaterEffects.self) private var waterEffects: WaterEffects?
+    @Environment(WeatherEffects.self) private var weatherEffects: WeatherEffects?
     @Environment(StarEffects.self) private var starEffects: StarEffects?
-    @Environment(CatEffects.self) private var catEffects: CatEffects?
     @Environment(FireworksEffects.self) private var fireworksEffects: FireworksEffects?
     @State private var taskPendingDelete: TodoTask?
     @State private var showDeleteConfirm = false
@@ -258,12 +258,12 @@ struct TaskListView: View {
         case .water: waterEffects?.celebrate()
         // 判子・ろうそくは 1 件ずつの演出だけ。星座は夜空の星が線でつながる（StarEffects）
         case .stamp, .candle, .constellation: break
-        case .cat: catEffects?.celebrate()
         case .fireworks: fireworksEffects?.celebrate()
-        // ひよこは、生まれる動きだけで十分なので、全部終わったときの演出はない
-        case .chick: break
         // 新しい 5 つは 1 件ずつの演出が主役（ちょうちょは、終えた数だけカードに並ぶのがご褒美）
         case .balloon, .jelly, .paperPlane, .shishiOdoshi, .butterfly: break
+        // 惑星・雪だるまも 1 件ずつが主役。くもり晴れは、全部終えると大きな太陽と虹が出る
+        case .planet, .snowman: break
+        case .weather: weatherEffects?.celebrate()
         }
     }
 

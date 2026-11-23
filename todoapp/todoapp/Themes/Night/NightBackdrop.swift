@@ -2,9 +2,10 @@
 //  NightBackdrop.swift
 //  todoapp
 //
-//  ねこ・花火・ひよこ・風船・ゼリー・紙飛行機・ししおどし・ちょうちょのテーマで共通の部品。
-//  - ThemeSeed: タスクごとに決まった「でたらめ」（肉球の向き・花火の色など）。描き直しても変わらない
-//  - NightBackdrop: 暗いグラデーションと、ぼんやり光る 3 色、テーマごとの小さな飾り（足あと・星・光の粒）
+//  花火・風船・ゼリー・紙飛行機・ししおどし・ちょうちょ・惑星・雪だるま・くもり晴れのテーマで共通の部品。
+//  - ThemeSeed: タスクごとに決まった「でたらめ」（花火・風船の色など）。描き直しても変わらない
+//  - NightBackdrop: グラデーションと、ぼんやり光る 3 色、テーマごとの小さな飾り（星・光の粒・雪・雲）。
+//    名前は夜だが、雪だるま・くもり晴れの明るい空もこれで描く
 //
 
 import SwiftUI
@@ -54,10 +55,12 @@ struct NightBackdrop: View {
 
     private var look: Look {
         switch style {
-        case .fireworks:
-            Look(top: DS.Fireworks.deepTop, bottom: DS.Fireworks.deepBottom, glows: DS.Fireworks.glows)
-        case .chick:
-            Look(top: DS.Chick.deepTop, bottom: DS.Chick.deepBottom, glows: DS.Chick.glows)
+        case .planet:
+            Look(top: DS.Planet.deepTop, bottom: DS.Planet.deepBottom, glows: DS.Planet.glows)
+        case .snowman:
+            Look(top: DS.Snowman.deepTop, bottom: DS.Snowman.deepBottom, glows: DS.Snowman.glows)
+        case .weather:
+            Look(top: DS.Weather.deepTop, bottom: DS.Weather.deepBottom, glows: DS.Weather.glows)
         case .balloon:
             Look(top: DS.Balloon.deepTop, bottom: DS.Balloon.deepBottom, glows: DS.Balloon.glows)
         case .jelly:
@@ -69,7 +72,7 @@ struct NightBackdrop: View {
         case .butterfly:
             Look(top: DS.Butterfly.deepTop, bottom: DS.Butterfly.deepBottom, glows: DS.Butterfly.glows)
         default:
-            Look(top: DS.Cat.deepTop, bottom: DS.Cat.deepBottom, glows: DS.Cat.glows)
+            Look(top: DS.Fireworks.deepTop, bottom: DS.Fireworks.deepBottom, glows: DS.Fireworks.glows)
         }
     }
 
@@ -107,14 +110,15 @@ struct NightBackdrop: View {
     @ViewBuilder
     private func ambient(time: TimeInterval) -> some View {
         switch style {
-        case .fireworks: FireworksSky(time: time)
-        case .chick: ChickDust(time: time)
         case .balloon: BalloonSky(time: time)
         case .jelly: JellySoda(time: time)
         case .paperPlane: PaperClouds(time: time)
         case .shishiOdoshi: ShishiRipples(time: time)
         case .butterfly: ButterflyPollen(time: time)
-        default: CatFootprints(time: time)
+        case .planet: PlanetStars(time: time)
+        case .snowman: SnowmanFlakes(time: time)
+        case .weather: WeatherClouds(time: time)
+        default: FireworksSky(time: time)
         }
     }
 }

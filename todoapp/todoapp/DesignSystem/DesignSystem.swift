@@ -293,8 +293,6 @@ extension DS {
         static let bubbleCheckbox: CGFloat = 30
         /// 花のテーマのチェック（つぼみ。咲くと花びらが外へ広がる）
         static let flowerCheckbox: CGFloat = 28
-        /// ひよこのテーマのチェック（たて長の卵）
-        static let chickCheckbox: CGFloat = 32
         /// サイドバーのグループアイコン
         static let groupIcon: CGFloat = 44
         /// 編集中のサイドバーの小さなグループアイコン

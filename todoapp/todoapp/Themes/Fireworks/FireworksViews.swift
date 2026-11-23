@@ -3,7 +3,8 @@
 //  todoapp
 //
 //  花火のテーマの色・形：火の色、玉のチェック、放射状の光の筋、夜空の星。
-//  チェックすると、その場で光の筋が中心からまっすぐ放射状に広がる（FireworksEffects）。
+//  チェックすると、玉がふるえながら光をため（まわりから火の粉が吸いこまれる）、
+//  ぎゅっと縮みきったところで、光の筋が中心からまっすぐ放射状に広がる（FireworksEffects）。
 //
 
 import SwiftUI
@@ -52,8 +53,8 @@ extension DS {
         )
 
         // MARK: 動き
-        /// チェックしてから花火が開くまで（玉がきゅっと縮んだあと）
-        static let igniteDelay: TimeInterval = 0.12
+        /// チェックしてから花火が開くまで（玉がふるえながら光をためる時間）
+        static let chargeDuration: TimeInterval = 0.95
         /// チェックの花火が開いて消えるまで
         static let burstDuration: TimeInterval = 1.3
         /// 全部終わったとき、打ち上げ続ける時間
@@ -63,7 +64,7 @@ extension DS {
 
 // MARK: - 玉のチェック
 
-/// 未完了は暗いガラス玉。完了すると、そのタスクの花火の色に光る
+/// 未完了は暗いガラス玉。チェックすると、玉の中に光がだんだんたまり、開いた瞬間にそのタスクの花火の色に光る
 struct FireworkCheck: View {
     let isCompleted: Bool
     let color: FireworkColor
@@ -72,6 +73,14 @@ struct FireworkCheck: View {
     var body: some View {
         ZStack {
             BubbleSphere(isFilled: false, tint: DS.Fireworks.glass)
+            // ためている光（だんだん強くなる）
+            Circle()
+                .fill(RadialGradient(colors: [color.light, color.mid.opacity(0.7), color.deep.opacity(0)],
+                                     center: .center, startRadius: 0, endRadius: DS.Size.bubbleCheckbox * 0.5))
+                .blendMode(.plusLighter)
+                .opacity(isCompleted ? 1 : 0)
+                .animation(isAnimated ? (isCompleted ? .easeIn(duration: DS.Fireworks.chargeDuration) : DS.Motion.fade) : nil,
+                           value: isCompleted)
             BubbleSphere(isFilled: true, tint: color.tint)
                 .opacity(isCompleted ? 1 : 0)
             Image(systemName: "checkmark")
@@ -80,7 +89,7 @@ struct FireworkCheck: View {
                 .shadow(color: color.deep.opacity(0.8), radius: 1)
                 .opacity(isCompleted ? 1 : 0)
         }
-        .animation(isAnimated ? (isCompleted ? .easeOut(duration: 0.3).delay(DS.Fireworks.igniteDelay) : DS.Motion.fade) : nil,
+        .animation(isAnimated ? (isCompleted ? .easeOut(duration: 0.3).delay(DS.Fireworks.chargeDuration) : DS.Motion.fade) : nil,
                    value: isCompleted)
     }
 }
