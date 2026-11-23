@@ -23,10 +23,10 @@ struct TaskRowView: View {
     @State private var jellyTrigger = 0
     /// ちょうちょのテーマ：チェックした時刻（ちょうちょがチェックから飛んできてとまる）。nil ならはじめからとまっている
     @State private var butterflyFlightStart: Date?
-    /// カードの画面上の位置（ねこの手がカードの中だけに見えるようにする・ちょうちょが飛び立つ場所）
+    /// カードの画面上の位置（ちょうちょが飛び立つ場所）
     @State private var cardFrame: CGRect = .zero
 
-    /// 肉球の向き・花火の色を決める種（タスクごとに決まる。ウィジェットとも同じになる）
+    /// 花火・風船などの色を決める種（タスクごとに決まる。ウィジェットとも同じになる）
     private var seed: UInt64 {
         var random = ThemeSeed(id: task.id)
         return UInt64(random.next() * Double(UInt32.max))
@@ -39,10 +39,9 @@ struct TaskRowView: View {
                 taskTitle: task.title,
                 animationsEnabled: animationsEnabled,
                 seed: seed,
-                cardFrame: cardFrame,
                 action: onToggleComplete
             )
-            // ねこ・花火・ひよこ・ゼリー・ししおどし・ちょうちょは、チェックの絵が主役なので薄くしない
+            // 花火・ゼリー・ししおどし・ちょうちょなどは、チェックの絵が主役なので薄くしない
             .opacity(style.keepsCheckBright ? 1 : rowOpacity)
             .padding(.leading, style.glassTint != nil ? DS.Spacing.s : DS.Spacing.xs)
             .padding(.top, DS.Spacing.xs)
@@ -91,7 +90,7 @@ struct TaskRowView: View {
         // 全部終わったときに、このカードから泡をあふれさせるため位置を知らせる
         .onGeometryChange(for: CGRect.self) { $0.frame(in: .global) } action: { frame in
             if style.hasCompletionEffects { bubbleEffects?.updateCardFrame(frame, for: task.id) }
-            if style == .cat || style == .butterfly { cardFrame = frame }
+            if style == .butterfly { cardFrame = frame }
         }
         .onDisappear { bubbleEffects?.removeCardFrame(for: task.id) }
         // 判子のテーマ：判子が紙に当たった瞬間、カードがぐっと沈む

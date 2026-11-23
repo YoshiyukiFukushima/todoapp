@@ -132,16 +132,6 @@ private struct ThemeSwatch: View {
                     .frame(width: DS.Size.groupIcon * 0.4, height: DS.Size.groupIcon * 0.4)
             }
             .clipShape(Circle())
-        case .cat:
-            ZStack {
-                Circle().fill(LinearGradient(colors: [DS.Cat.glows[0].0, DS.Cat.deepTop, DS.Cat.glows[1].0],
-                                             startPoint: .topLeading, endPoint: .bottomTrailing))
-                PawPrintShape()
-                    .fill(DS.Cat.padLight)
-                    .frame(width: DS.Size.groupIcon * 0.48, height: DS.Size.groupIcon * 0.48)
-                    .rotationEffect(.degrees(-18))
-            }
-            .clipShape(Circle())
         case .fireworks:
             ZStack {
                 Circle().fill(LinearGradient(colors: [DS.Fireworks.glows[0].0, DS.Fireworks.deepBottom],
@@ -151,14 +141,6 @@ private struct ThemeSwatch: View {
                                               radius: size.width * 0.42, rays: 14, rotation: 0,
                                               color: FireworkColor.all[2], t: 0.5, duration: 1.3, lineWidth: 1.2)
                 }
-            }
-            .clipShape(Circle())
-        case .chick:
-            ZStack {
-                Circle().fill(LinearGradient(colors: [DS.Chick.glows[0].0, DS.Chick.deepTop],
-                                             startPoint: .topLeading, endPoint: .bottomTrailing))
-                ChickHatch(progress: 1)
-                    .frame(width: DS.Size.groupIcon * 0.58, height: DS.Size.groupIcon * 0.58)
             }
             .clipShape(Circle())
         case .water:
@@ -252,6 +234,37 @@ private struct ThemeSwatch: View {
                 ButterflyView(palette: ButterflyPalette.all[0])
                     .frame(width: DS.Size.groupIcon * 0.62, height: DS.Size.groupIcon * 0.62)
                     .rotationEffect(.degrees(-12))
+            }
+            .clipShape(Circle())
+        case .planet:
+            ZStack {
+                Circle().fill(LinearGradient(colors: [DS.Planet.glows[0].0, DS.Planet.deepTop, DS.Planet.glows[1].0],
+                                             startPoint: .topLeading, endPoint: .bottomTrailing))
+                Canvas { context, size in
+                    PlanetDrawing.draw(in: context, center: CGPoint(x: size.width / 2, y: size.height / 2),
+                                       radius: size.width * 0.2, palette: PlanetPalette.all[0], ring: 1)
+                }
+            }
+            .clipShape(Circle())
+        case .snowman:
+            ZStack {
+                Circle().fill(LinearGradient(colors: [DS.Snowman.deepTop, DS.Snowman.deepBottom],
+                                             startPoint: .top, endPoint: .bottom))
+                SnowmanBuild(progress: 1)
+                    .frame(width: DS.Size.groupIcon * 0.56, height: DS.Size.groupIcon * 0.56)
+                    .offset(y: DS.Size.groupIcon * 0.02)
+            }
+            .clipShape(Circle())
+        case .weather:
+            ZStack {
+                Circle().fill(LinearGradient(colors: [DS.Weather.glows[1].0, DS.Weather.deepTop],
+                                             startPoint: .topTrailing, endPoint: .bottomLeading))
+                Canvas { context, size in
+                    let side = size.width
+                    WeatherDrawing.drawSun(in: context, center: CGPoint(x: side * 0.6, y: side * 0.4), radius: side * 0.16,
+                                           rays: 1, face: 1, spin: 0)
+                    WeatherDrawing.drawCloud(in: context, center: CGPoint(x: side * 0.4, y: side * 0.6), width: side * 0.46)
+                }
             }
             .clipShape(Circle())
         case .standard:

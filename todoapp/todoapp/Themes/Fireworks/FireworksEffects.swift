@@ -3,12 +3,14 @@
 //  todoapp
 //
 //  花火のテーマの演出。画面全体に重ねた 1 枚の層（FireworksEffectsLayer）で描く。
-//  - burst: チェックした玉から、光の筋がまっすぐ放射状に広がる
+//  - burst: チェックした玉に、まわりから火の粉が吸いこまれて光がたまり、ためきったところで
+//    光の筋がまっすぐ放射状に広がる（開く瞬間に、ずしんと触覚を返す）
 //  - celebrate: 全部終わったとき、画面の下から次々に打ち上がって、夜空に大きく開く
 //
 
 import SwiftUI
 import Observation
+import UIKit
 
 @Observable
 final class FireworksEffects {
@@ -22,7 +24,7 @@ final class FireworksEffects {
         let color: FireworkColor
         /// 打ち上げ始め
         let birth: TimeInterval
-        /// 上がるのにかかる時間（その場で開くなら 0）
+        /// 上がるのにかかる時間（その場で開くなら、光をためる時間）
         let rise: TimeInterval
         let duration: TimeInterval
         let lineWidth: Double
@@ -38,13 +40,21 @@ final class FireworksEffects {
 
     @ObservationIgnored fileprivate var visibleBounds: CGRect = .zero
 
-    /// チェックした玉から花火が開く
+    /// チェックした玉に光がたまってから、花火が開く
     func burst(at center: CGPoint, radius: CGFloat, color: FireworkColor) {
-        shells.append(Shell(launch: nil, center: center, radius: Double(radius) * 3.4, rays: 20,
+        let charge = DS.Fireworks.chargeDuration
+        shells.append(Shell(launch: nil, center: center, radius: Double(radius) * 4.2, rays: 24,
                             rotation: .random(in: 0...(.pi * 2)), color: color,
-                            birth: now + DS.Fireworks.igniteDelay, rise: 0,
-                            duration: DS.Fireworks.burstDuration, lineWidth: 1.8, droop: 0))
+                            birth: now, rise: charge,
+                            duration: DS.Fireworks.burstDuration * 1.15, lineWidth: 2, droop: 0))
         scheduleCleanup()
+        // 開く瞬間に、ずしんと
+        let impact = UIImpactFeedbackGenerator(style: .heavy)
+        impact.prepare()
+        Task { @MainActor in
+            try? await Task.sleep(for: .seconds(charge))
+            impact.impactOccurred(intensity: 1)
+        }
     }
 
     /// 全部終わったときのご褒美：たくさん打ち上げる
@@ -111,8 +121,13 @@ struct FireworksEffectsLayer: View {
 
     private func draw(_ shell: FireworksEffects.Shell, at t: TimeInterval, in context: GraphicsContext) {
         guard t >= 0 else { return }
-        if let launch = shell.launch, t < shell.rise {
-            drawRocket(from: launch, to: shell.center, progress: t / shell.rise, color: shell.color, in: context)
+        if t < shell.rise {
+            if let launch = shell.launch {
+                drawRocket(from: launch, to: shell.center, progress: t / shell.rise, color: shell.color, in: context)
+            } else {
+                drawCharge(at: shell.center, radius: shell.radius, rotation: shell.rotation,
+                           progress: t / shell.rise, time: t, color: shell.color, in: context)
+            }
             return
         }
         let burstT = t - shell.rise
@@ -120,6 +135,48 @@ struct FireworksEffectsLayer: View {
         FireworkDrawing.drawBurst(in: context, center: center, radius: shell.radius, rays: shell.rays,
                                   rotation: shell.rotation, color: shell.color, t: burstT,
                                   duration: shell.duration, lineWidth: shell.lineWidth)
+    }
+
+    /// 光をためる：まわりから火の粉が玉へ吸いこまれ、玉のまわりの光がふるえながら強くなる
+    private func drawCharge(at center: CGPoint, radius: Double, rotation: Double, progress: Double,
+                            time: Double, color: FireworkColor, in context: GraphicsContext) {
+        var c = context
+        c.blendMode = .plusLighter
+
+        // 火の粉：少しずつ時間をずらして、外から渦を巻くように吸いこまれる
+        let sparks = 22
+        for index in 0..<sparks {
+            let start = Double(index) / Double(sparks) * 0.55
+            let p = Ease.clamp((progress - start) / 0.42)
+            guard p > 0, p < 1 else { continue }
+            let pull = Ease.inCubic(p)
+            let angle = rotation + Double(index) * 2.399 + pull * 1.2
+            let distance = radius * (0.95 - 0.85 * pull) * (0.85 + 0.3 * Double((index * 7) % 5) / 4)
+            let dir = CGVector(dx: cos(angle), dy: sin(angle))
+            let head = CGPoint(x: center.x + dir.dx * distance, y: center.y + dir.dy * distance)
+            let tailLength = 6 + 16 * pull
+            let tail = CGPoint(x: head.x + dir.dx * tailLength, y: head.y + dir.dy * tailLength)
+            let alpha = Ease.smoothstep(0, 0.25, p) * (1 - Ease.smoothstep(0.85, 1, p))
+            var line = Path()
+            line.move(to: tail)
+            line.addLine(to: head)
+            c.stroke(line, with: .linearGradient(Gradient(colors: [color.mid.opacity(0), color.light.opacity(alpha)]),
+                                                 startPoint: tail, endPoint: head),
+                     style: StrokeStyle(lineWidth: 2, lineCap: .round))
+            let r = 1.6
+            c.fill(Path(ellipseIn: CGRect(x: head.x - r, y: head.y - r, width: r * 2, height: r * 2)),
+                   with: .color(.white.opacity(alpha)))
+        }
+
+        // 玉のまわりの光：だんだん強く、最後はちらちらふるえる
+        let swell = Ease.inCubic(progress)
+        let flicker = 1 + 0.18 * swell * sin(time * 48)
+        let glowRadius = radius * (0.14 + 0.16 * swell) * flicker
+        c.fill(Path(ellipseIn: CGRect(x: center.x - glowRadius, y: center.y - glowRadius,
+                                      width: glowRadius * 2, height: glowRadius * 2)),
+               with: .radialGradient(Gradient(colors: [.white.opacity(0.55 * swell), color.light.opacity(0.4 * swell),
+                                                       color.mid.opacity(0)]),
+                                     center: center, startRadius: 0, endRadius: glowRadius))
     }
 
     /// 打ち上がる火の玉と、その尾

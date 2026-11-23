@@ -35,12 +35,8 @@ nonisolated enum ColorTheme: String, CaseIterable, Identifiable, Sendable {
     case candle
     /// 星座。終えると星が灯り、全部終えると星座になる。いつも暗い
     case constellation
-    /// ねこ。チェックするとねこの手が肉球のスタンプを押す。いつも暗い
-    case cat
     /// 花火。夜空で、チェックすると花火が開く。いつも暗い
     case fireworks
-    /// ひよこ。チェックすると卵からひよこが生まれる。いつも暗い
-    case chick
     /// 風船。ふくらんでパンッと割れ、紙吹雪が散る。いつも暗い
     case balloon
     /// ゼリー。ぷるんと揺れて、ぶどう・オレンジ・メロンの色に染まる。いつも暗い
@@ -51,6 +47,12 @@ nonisolated enum ColorTheme: String, CaseIterable, Identifiable, Sendable {
     case shishiOdoshi
     /// ちょうちょ。さなぎから羽化して、カードの右端にとまる。終えた数だけ並ぶ。いつも暗い
     case butterfly
+    /// 惑星。星くずが集まって、輪のある惑星が生まれる。いつも暗い
+    case planet
+    /// 雪だるま。雪玉が転がってきて、頭が乗り、マフラーを巻く。いつも明るい
+    case snowman
+    /// くもりのち晴れ。雲が流れて、にこにこの太陽が出る。全部終えると虹がかかる。いつも明るい
+    case weather
 
     var id: String { rawValue }
 
@@ -68,14 +70,15 @@ nonisolated enum ColorTheme: String, CaseIterable, Identifiable, Sendable {
         case .stamp: .stamp
         case .candle: .candle
         case .constellation: .constellation
-        case .cat: .cat
         case .fireworks: .fireworks
-        case .chick: .chick
         case .balloon: .balloon
         case .jelly: .jelly
         case .paperPlane: .paperPlane
         case .shishiOdoshi: .shishiOdoshi
         case .butterfly: .butterfly
+        case .planet: .planet
+        case .snowman: .snowman
+        case .weather: .weather
         default: .warm
         }
     }
@@ -91,14 +94,15 @@ nonisolated enum ColorTheme: String, CaseIterable, Identifiable, Sendable {
         case .stamp: .stamp
         case .candle: .candle
         case .constellation: .constellation
-        case .cat: .cat
         case .fireworks: .fireworks
-        case .chick: .chick
         case .balloon: .balloon
         case .jelly: .jelly
         case .paperPlane: .paperPlane
         case .shishiOdoshi: .shishiOdoshi
         case .butterfly: .butterfly
+        case .planet: .planet
+        case .snowman: .snowman
+        case .weather: .weather
         default: .standard
         }
     }
@@ -107,9 +111,9 @@ nonisolated enum ColorTheme: String, CaseIterable, Identifiable, Sendable {
     var fixedInterfaceStyle: UIUserInterfaceStyle? {
         switch style {
         case .standard: nil
-        case .bubble, .flower, .water, .candle, .constellation, .cat, .fireworks, .chick,
-             .balloon, .jelly, .paperPlane, .shishiOdoshi, .butterfly: .dark
-        case .stamp: .light
+        case .bubble, .flower, .water, .candle, .constellation, .fireworks,
+             .balloon, .jelly, .paperPlane, .shishiOdoshi, .butterfly, .planet: .dark
+        case .stamp, .snowman, .weather: .light
         }
     }
 
@@ -129,14 +133,15 @@ extension ColorTheme {
         case .stamp: "判子"
         case .candle: "ろうそく"
         case .constellation: "星座"
-        case .cat: "ねこ"
         case .fireworks: "花火"
-        case .chick: "ひよこ"
         case .balloon: "風船"
         case .jelly: "ゼリー"
         case .paperPlane: "紙飛行機"
         case .shishiOdoshi: "ししおどし"
         case .butterfly: "ちょうちょ"
+        case .planet: "惑星"
+        case .snowman: "雪だるま"
+        case .weather: "くもり晴れ"
         default: accent.displayName
         }
     }
@@ -161,14 +166,15 @@ extension ColorTheme {
         case .stamp: .tomato
         case .candle: .mikan
         case .constellation: .grape
-        case .cat: .berry
         case .fireworks: .sky
-        case .chick: .mikan
         case .balloon: .tomato
         case .jelly: .grape
         case .paperPlane: .sky
         case .shishiOdoshi: .leaf
         case .butterfly: .teal
+        case .planet: .grape
+        case .snowman: .tomato
+        case .weather: .mikan
         }
     }
 }
