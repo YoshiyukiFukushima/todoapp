@@ -65,6 +65,42 @@ struct TaskQueryTests {
         #expect(titles(query.incompleteTasks(from: tasks, in: .day)) == ["今日"])
     }
 
+    // MARK: 日付を選ぶ（今日から並んだ日付。1 日でも、続いた何日かでも）
+
+    @Test func daysShowsTasksDueOnSelectedDays() {
+        let tasks = [
+            task("期限切れ", due: day(11, 11)),
+            task("今日", due: day(11, 12)),
+            task("明日", due: day(11, 13)),
+            task("あさって", due: day(11, 14)),
+            task("期限なし"),
+        ]
+        #expect(titles(query.incompleteTasks(from: tasks, in: .days(.today))) == ["今日"])
+        #expect(titles(query.incompleteTasks(from: tasks, in: .days(DayRange(start: 1)))) == ["明日"])
+        #expect(titles(query.incompleteTasks(from: tasks, in: .days(DayRange(start: 0, count: 2)))) == ["今日", "明日"])
+        #expect(titles(query.incompleteTasks(from: tasks, in: .days(DayRange.between(3, 1)))) == ["明日", "あさって"])
+    }
+
+    @Test func daysKeepCompletedTasksOnTheirDay() {
+        let tasks = [
+            task("明日の分を今日終えた", due: day(11, 13), completedAt: now),
+            task("期限切れを今日終えた", due: day(11, 10), completedAt: now),
+            task("昨日終えた", due: day(11, 11), completedAt: daysAgo(1)),
+        ]
+        // 先の日のタスクは、前もって終えてもその日に残る
+        #expect(titles(query.listedTasks(from: tasks, in: .days(DayRange(start: 1)))) == ["明日の分を今日終えた"])
+        // 今日には、今日終えたものが出る
+        #expect(titles(query.listedTasks(from: tasks, in: .days(.today))) == ["期限切れを今日終えた", "明日の分を今日終えた"])
+        let progress = query.progress(in: tasks, for: .days(DayRange(start: 0, count: 2)))
+        #expect(progress?.done == 2)
+    }
+
+    @Test func dayRangeIsOrderedAndAtLeastOneDay() {
+        #expect(DayRange.between(5, 2) == DayRange(start: 2, count: 4))
+        #expect(DayRange(start: -3, count: 0) == DayRange(start: 0, count: 1))
+        #expect(DayRange(start: 2, count: 3).end == 4)
+    }
+
     @Test func weekUsesSundayStartWeek() {
         let tasks = [
             task("日曜", due: day(11, 8)),

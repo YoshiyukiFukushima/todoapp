@@ -2,7 +2,7 @@
 //  TaskQuery.swift
 //  todoapp
 //
-//  タブ（日／週／月／全て／履歴）ごとのタスクの絞り込み・件数・完了済みの日付グループ分け。
+//  絞り込み（今日から並んだ日付／全て／履歴。前の日・週・月のタブも残している）ごとのタスクの絞り込み・件数・完了済みの日付グループ分け。
 //  以前は TabBarView と TaskListView に同じ条件が別々に書かれていたものを 1 か所にまとめた。
 //  `now` と `calendar` を差し替えられるのでテストできる。
 //
@@ -38,6 +38,10 @@ struct TaskQuery {
     func isIncompleteVisible(_ task: TodoTask, in filter: TaskFilter) -> Bool {
         guard !task.isCompleted else { return false }
         switch filter {
+        case .days(let range):
+            // 期限がその日（またはその何日か）のもの。期限切れ・期限なしは「全て」に出す
+            guard let due = task.dueDate, let offset = dayOffset(of: due) else { return false }
+            return range.contains(offset)
         case .day:
             guard let due = task.dueDate else { return false }
             return calendar.isDate(due, inSameDayAs: now)
@@ -68,11 +72,7 @@ struct TaskQuery {
         guard filter != .history else { return [] }
         return tasks
             .filter { task in
-                if task.isCompleted {
-                    guard let completedDate = task.completedDate else { return false }
-                    return isCompletedVisible(completedDate: completedDate, in: filter)
-                }
-                return isIncompleteVisible(task, in: filter)
+                task.isCompleted ? isCompletedTaskVisible(task, in: filter) : isIncompleteVisible(task, in: filter)
             }
             .sorted { lhs, rhs in
                 let l = lhs.dueDate ?? .distantFuture
@@ -89,10 +89,23 @@ struct TaskQuery {
 
     // MARK: 完了済み
 
-    /// 完了済みタスクがこのタブに表示されるか（設計書 v3.0「完了タスクの表示ルール」）
+    /// 完了済みタスクがこの絞り込みに表示されるか。
+    /// 日付の絞り込みでは、期限がその日のもの（先の日のタスクを前もって終えても、その日に残る）と、その日に完了したもの
+    func isCompletedTaskVisible(_ task: TodoTask, in filter: TaskFilter) -> Bool {
+        guard task.isCompleted, let completedDate = task.completedDate else { return false }
+        if case .days(let range) = filter {
+            if let due = task.dueDate, let offset = dayOffset(of: due), range.contains(offset) { return true }
+        }
+        return isCompletedVisible(completedDate: completedDate, in: filter)
+    }
+
+    /// 完了日がこの絞り込みの範囲に入るか（設計書 v3.0「完了タスクの表示ルール」）
     func isCompletedVisible(completedDate: Date, in filter: TaskFilter) -> Bool {
         let daysAgo = daysBefore(completedDate)
         switch filter {
+        case .days(let range):
+            // 完了日は今日より先にはならないので、今日を含むときだけ「今日完了したもの」が入る
+            return range.contains(0) && daysAgo == 0
         case .day: return calendar.isDate(completedDate, inSameDayAs: now)
         case .week: return calendar.isDate(completedDate, equalTo: now, toGranularity: .weekOfYear)
         case .month: return calendar.isDate(completedDate, equalTo: now, toGranularity: .month)
@@ -142,10 +155,7 @@ struct TaskQuery {
     func progress(in tasks: [TodoTask], for filter: TaskFilter) -> (done: Int, total: Int)? {
         guard filter != .history else { return nil }
         let remaining = tasks.filter { isIncompleteVisible($0, in: filter) }.count
-        let done = tasks.filter { task in
-            guard task.isCompleted, let completedDate = task.completedDate else { return false }
-            return isCompletedVisible(completedDate: completedDate, in: filter)
-        }.count
+        let done = tasks.filter { isCompletedTaskVisible($0, in: filter) }.count
         return (done, done + remaining)
     }
 
@@ -186,6 +196,17 @@ struct TaskQuery {
     }
 
     // MARK: -
+
+    /// `date` が今日から何日後か（今日 = 0。過去は nil）
+    func dayOffset(of date: Date) -> Int? {
+        let offset = calendar.dateComponents([.day], from: calendar.startOfDay(for: now), to: calendar.startOfDay(for: date)).day ?? 0
+        return offset >= 0 ? offset : nil
+    }
+
+    /// 今日から offset 日後の日付（0 時）
+    func date(atOffset offset: Int) -> Date {
+        calendar.date(byAdding: .day, value: offset, to: calendar.startOfDay(for: now)) ?? now
+    }
 
     /// `date` が今日から何日前か（未来は 0）
     private func daysBefore(_ date: Date) -> Int {

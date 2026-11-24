@@ -15,6 +15,7 @@ struct EmptyTasksView: View {
 
     private var title: String {
         switch filter {
+        case .days(let range): range.count == 1 ? "\(filter.scopeLabel)のタスクはありません" : "この期間のタスクはありません"
         case .day: "今日のタスクはありません"
         case .week: "今週のタスクはありません"
         case .month: "今月のタスクはありません"
