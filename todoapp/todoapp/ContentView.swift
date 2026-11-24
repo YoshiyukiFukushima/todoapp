@@ -21,7 +21,7 @@ struct ContentView: View {
     @State private var selectedGroupID: UUID?
     /// 「すべてのグループ」を見ているか
     @State private var isAllGroupsSelected = false
-    @State private var selectedFilter: TaskFilter = .day
+    @State private var selectedFilter: TaskFilter = .days(.today)
     @State private var isSidebarOpen = false
     @State private var showAddTask = false
     @State private var showSettings = false
@@ -47,6 +47,17 @@ struct ContentView: View {
     private var groupViewModel: GroupViewModel { GroupViewModel(modelContext: modelContext) }
 
     private var theme: ColorTheme { themeManager.selectedTheme }
+
+    /// ＋で追加するタスクの、はじめの期限
+    private var defaultDueDate: Date? {
+        switch selectedFilter {
+        case .all: nil
+        case .days(let range):
+            // 時刻は今のまま、日付だけ選んだ日にする
+            Calendar.current.date(byAdding: .day, value: range.start, to: Date())
+        default: Date()
+        }
+    }
 
     /// 直前に開いていたグループ（「すべてのグループ」を見ている間も覚えておき、＋の追加先にする）
     private var selectedGroup: TodoGroup? {
@@ -136,8 +147,8 @@ struct ContentView: View {
             if let group = selectedGroup {
                 TaskEditSheet(
                     group: group, subgroup: nil, task: nil, taskViewModel: taskViewModel,
-                    // 全てタブ（期限なし・期限切れ）からは期限なし、それ以外は今日（docs/design.md）
-                    defaultDueDate: selectedFilter == .all ? nil : Date()
+                    // 全て（期限なし・期限切れ）からは期限なし、日付を選んでいるならその最初の日、それ以外は今日（docs/design.md）
+                    defaultDueDate: defaultDueDate
                 )
                 .dsRoot(theme: theme)
             }
